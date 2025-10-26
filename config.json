@@ -1,0 +1,21 @@
+{
+    "DatabaseName":  "FieldServiceDB",
+    "CompanyCode":  "KIT",
+    "DatabaseServer":  "localhost\\SQLEXPRESS",
+    "EnableAutoUpdates":  false,
+    "AdminPassword":  "abc123",
+    "BackupTime":  "02:00",
+    "AdminEmail":  "admin@dcpsp.com",
+    "DatabaseAuth":  "Windows",
+    "BackupRetentionDays":  30,
+    "CompanyName":  "Knight Industries",
+    "AdminFullName":  "Joseph Ramon SR",
+    "PublicSubmissionUrl":  "http://localhost:5000/service-request.html",
+    "FrontendPort":  5173,
+    "DatabasePassword":  "",
+    "DatabaseUser":  "",
+    "BackupEnabled":  true,
+    "ServiceRequestsEnabled":  true,
+    "ApiPort":  5000,
+    "AdminUsername":  "admin"
+}

@@ -1,0 +1,11 @@
+<step title="Incoming Request" date="2025-10-17T20:14:18.738" instance="5766c0" url="/dump" method="GET" type="request" pid="464,2,10" Accept-Encoding="identity" Authorization="Bea..." Host="customer-portal-adbudbhae3gjcrhm.scm.centralus-01.azurewebsites.net" User-Agent="AZURECLI/2.74.0 (MSI)" x-ms-client-request-id="da90fe8d-ab95-11f0-8ec3-00051b860c5a" X-ARR-LOG-ID="da90fe8d-ab95-11f0-8ec3-00051b860c5a" CLIENT-IP="24.32.74.177:65079" X-SITE-DEPLOYMENT-ID="customer-portal" WAS-DEFAULT-HOSTNAME="customer-portal-adbudbhae3gjcrhm.scm.centralus-01.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/dump" >
+  <step title="Cleanup Xml Logs" date="2025-10-17T20:14:18.738" /><!-- duration: 0ms -->
+  <step title="ZipStreamContent.OnZip" date="2025-10-17T20:14:18.753" >
+    <step title="Error occurred" date="2025-10-17T20:14:18.925" type="error" text="C:\home\LogFiles\ApplicationInsights\status\status_WO0XSDWK000010_5616_2.json, System.IO.IOException: The process cannot access the file &apos;C:\home\LogFiles\ApplicationInsights\status\status_WO0XSDWK000010_5616_2.json&apos; because it is being used by another process.
+   at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   at System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, Boolean useAsync)
+   at System.IO.FileInfo.OpenRead()
+   at System.IO.Abstractions.FileInfoWrapper.OpenRead()
+   at Kudu.Core.Infrastructure.ZipArchiveExtensions.AddFile(ZipArchive zipArchive, FileInfoBase file, ITracer tracer, String directoryNameInArchive)" /><!-- duration: 0ms -->

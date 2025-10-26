@@ -1,0 +1,233 @@
+====================================================================
+CUSTOMER PORTAL - PLESK DEPLOYMENT INSTRUCTIONS
+====================================================================
+
+This package contains everything you need to deploy the Customer 
+Portal to your Plesk-hosted website.
+
+PACKAGE CONTENTS:
+  ✓ server.js                    - Main application server
+  ✓ package.json                 - Dependencies list
+  ✓ public/                      - HTML form and assets
+  ✓ .env                         - Configuration (MUST EDIT!)
+  ✓ setup-database-user.sql      - SQL script for database user
+  ✓ This file                    - Deployment instructions
+
+====================================================================
+DEPLOYMENT STEPS
+====================================================================
+
+STEP 1: PREPARE YOUR DATABASE
+-------------------------------
+
+Before uploading to Plesk, you MUST configure SQL Server to accept 
+remote connections:
+
+1. Run setup-database-user.sql on your SQL Server:
+   - Open SQL Server Management Studio (SSMS)
+   - Connect to your SQL Server
+   - Open setup-database-user.sql
+   - Edit the password in line 5 (use a strong password!)
+   - Execute the script
+   - Verify you see "✅ Database user created successfully"
+
+2. Enable SQL Server Authentication:
+   - In SSMS, right-click your server → Properties
+   - Go to Security page
+   - Select "SQL Server and Windows Authentication mode"
+   - Click OK
+   - Restart SQL Server service
+
+3. Enable TCP/IP Protocol:
+   - Open "SQL Server Configuration Manager"
+   - Expand "SQL Server Network Configuration"
+   - Click "Protocols for [YourInstance]"
+   - Right-click "TCP/IP" → Enable
+   - Double-click "TCP/IP" → IP Addresses tab
+   - Scroll to "IPAll" section
+   - Set "TCP Port" to: 1433
+   - Click OK
+   - Restart SQL Server service
+
+4. Configure Windows Firewall:
+   - Open "Windows Firewall with Advanced Security"
+   - Click "Inbound Rules" → "New Rule"
+   - Rule Type: Port
+   - TCP Port: 1433
+   - Allow the connection
+   - Apply to all profiles
+   - Name: "SQL Server Port 1433"
+
+5. Test Remote Connection:
+   From any other computer, try:
+   sqlcmd -S YOUR_SERVER_IP -U portal_user -P YourPassword
+
+   If this works, you're ready to deploy!
+
+STEP 2: EDIT CONFIGURATION FILE
+--------------------------------
+
+BEFORE uploading, edit the .env file with your details:
+
+1. Open .env in a text editor
+2. Replace these values:
+   
+   DB_SERVER=YOUR_SQL_SERVER_IP_OR_HOSTNAME
+   → Your SQL Server IP address or hostname
+   → Example: 192.168.1.100 or sqlserver.yourdomain.com
+   
+   DB_PASSWORD=CHANGE_THIS_PASSWORD
+   → The password you set in Step 1
+   → Make sure it matches setup-database-user.sql
+   
+   ALLOWED_ORIGINS=https://yourdomain.com
+   → Your actual website domain
+   → Example: https://www.mycompany.com
+   → Important for security!
+
+3. Keep these as-is (unless you changed them):
+   DB_NAME=FieldServiceDB
+   DB_USER=portal_user
+   COMPANY_CODE=KIT
+   PORT=3000
+   NODE_ENV=production
+
+4. Save the .env file
+
+STEP 3: UPLOAD TO PLESK
+------------------------
+
+1. Log into your Plesk control panel
+2. Go to "Files" → "File Manager"
+3. Navigate to where you want the portal
+   Suggested: /httpdocs/support/
+   This will make your portal available at:
+   https://yourdomain.com/support
+
+4. Upload all files from this folder:
+   - server.js
+   - package.json
+   - .env (the edited one!)
+   - public/ (entire folder)
+
+   You can:
+   - Upload as ZIP and extract, OR
+   - Upload individual files/folders
+
+5. Verify all files uploaded correctly
+
+STEP 4: CONFIGURE NODE.JS IN PLESK
+-----------------------------------
+
+1. In Plesk, go to your domain
+2. Click "Node.js" in the left sidebar
+3. Configure these settings:
+
+   ☑ Enable Node.js
+   
+   Node.js version: 18.x or higher
+   Document root: /support (or your path)
+   Application mode: Production
+   Application startup file: server.js
+   
+4. Click "Enable Node.js"
+
+5. Click "NPM Install" button
+   - This installs required packages
+   - Wait for "Success" message
+
+6. Click "Restart App" button
+   - This starts your portal
+
+STEP 5: TEST YOUR PORTAL
+-------------------------
+
+1. Open your browser
+2. Visit: https://yourdomain.com/support
+   (or wherever you uploaded it)
+
+3. You should see the service request form
+
+4. Fill out a test request and submit
+
+5. Check your Field Service Management System
+   - The request should appear in Service Requests
+
+6. If it doesn't work, see TROUBLESHOOTING below
+
+====================================================================
+TROUBLESHOOTING
+====================================================================
+
+PORTAL DOESN'T LOAD:
+- Check Node.js is enabled in Plesk
+- Check "Application startup file" is set to: server.js
+- Click "Restart App" in Plesk Node.js settings
+- Check Plesk logs: Logs → Node.js
+
+ERROR: "Cannot connect to database":
+- Verify SQL Server is running
+- Verify TCP/IP is enabled (Step 1.3)
+- Verify firewall allows port 1433 (Step 1.4)
+- Test connection: sqlcmd -S YOUR_IP -U portal_user -P password
+- Check .env has correct DB_SERVER, DB_USER, DB_PASSWORD
+
+ERROR: "Login failed for user 'portal_user'":
+- Verify you created the user with setup-database-user.sql
+- Verify password in .env matches database
+- Verify SQL Authentication is enabled (Step 1.2)
+
+FORM SUBMITS BUT NO REQUEST IN SYSTEM:
+- Check user permissions in database
+- Verify portal_user has INSERT permission on ServiceRequests
+- Check ActivityLog for errors
+- Check Plesk Node.js logs
+
+CORS ERROR IN BROWSER:
+- Check ALLOWED_ORIGINS in .env matches your domain exactly
+- Include both https://yourdomain.com and https://www.yourdomain.com
+- Restart app after changing .env
+
+====================================================================
+SECURITY CHECKLIST
+====================================================================
+
+Before announcing to customers, verify:
+
+☑ ALLOWED_ORIGINS is set to your actual domain (not *)
+☑ DB_PASSWORD is a strong password (not the default)
+☑ portal_user only has INSERT permissions (not DELETE/UPDATE)
+☑ SQL Server firewall is configured (port 1433)
+☑ SSL certificate is active (https:// works)
+☑ NODE_ENV=production in .env
+☑ Test from external network (not just localhost)
+
+====================================================================
+ADDITIONAL RESOURCES
+====================================================================
+
+For detailed documentation, see:
+- PLESK-DEPLOYMENT.md - Complete deployment guide
+- PLESK-QUICK-START.md - 15-minute quick start guide
+
+For support:
+- Check server logs in Plesk → Logs → Node.js
+- Check Field Service Management System ActivityLog table
+- Verify database connection with sqlcmd
+
+====================================================================
+UPDATING THE PORTAL
+====================================================================
+
+To update the portal code later:
+
+1. Stop the app in Plesk Node.js settings
+2. Upload new server.js (overwrites existing)
+3. If package.json changed, click "NPM Install"
+4. Click "Restart App"
+
+Your .env file and data are not affected by updates.
+
+====================================================================
+
+Need help? Check PLESK-DEPLOYMENT.md for detailed troubleshooting!

@@ -1,0 +1,166 @@
+# Files and directories to exclude from distribution package
+# This file is used by the build process to ensure clean packaging
+
+# Version Control
+.git/
+.gitignore
+.gitattributes
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and Configuration
+.env
+.env.local
+.env.development
+.env.test
+*.env
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output/
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# Development Files
+test/
+tests/
+__tests__/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Documentation Source
+docs/src/
+*.draft.md
+
+# Temporary Files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Database Files (local development)
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup Files
+*.bak
+*.backup
+
+# Archive Files
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Configuration overrides
+config.local.*
+*.local.json
+
+# Security Files
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+
+# Cache
+.cache/
+*.cache
+
+# Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Development tools
+.eslintcache
+.stylelintcache

@@ -1,0 +1,104 @@
+<step title="BackgroundTrace" date="2025-10-17T19:53:41.695" instance="5766c0" url="/api/zipdeploy" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-10-17T19:53:41.695" SemaphoreCount="7" /><!-- duration: 16ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-10-17T19:53:41.711" /><!-- duration: 0ms -->
+  <step title="Creating temporary deployment" date="2025-10-17T19:53:41.711" /><!-- duration: 47ms -->
+  <step title="Performing fetch based deployment" date="2025-10-17T19:53:41.758" >
+    <step title="Fetching changes." date="2025-10-17T19:53:41.836" /><!-- duration: 16ms -->
+    <step title="Starting LocalZipHandler" date="2025-10-17T19:53:41.852" /><!-- duration: 0ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\jel21abr.zip (2.03 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-10-17T19:53:41.883" /><!-- duration: 0ms -->
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\jel21abr.zip (2.03 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-10-17T19:53:41.883" >
+      <step title="Extracting 1185 entries to C:\local\Temp\zipdeploy\extracted directory" date="2025-10-17T19:53:41.899" >
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\public\index.html ..." date="2025-10-17T19:53:41.915" /><!-- duration: 0ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\node_modules\.package-lock.json ..." date="2025-10-17T19:53:41.930" /><!-- duration: 0ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\node_modules\.bin\mime ..." date="2025-10-17T19:53:41.930" /><!-- duration: 16ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\node_modules\.bin\mime.cmd ..." date="2025-10-17T19:53:41.946" /><!-- duration: 0ms -->
+        <step title="Extracting to C:\local\Temp\zipdeploy\extracted\node_modules\.bin\mime.ps1 ..." date="2025-10-17T19:53:41.946" /><!-- duration: 16ms -->
+        <step title="Omitting extracting file traces ..." date="2025-10-17T19:53:41.961" /><!-- duration: 0ms -->
+      </step><!-- duration: 1016ms -->
+    </step><!-- duration: 1031ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-10-17T19:53:42.915" /><!-- duration: 16ms -->
+    <step title="DeploymentManager.Deploy(id:6a4b27f0a05540318000cd834582a2d7)" date="2025-10-17T19:53:42.930" >
+      <step title="Collecting changeset information" date="2025-10-17T19:53:42.946" /><!-- duration: 31ms -->
+      <step title="Updating submodules" date="2025-10-17T19:53:42.977" >
+        <step title="Updating submodules." date="2025-10-17T19:53:43.024" /><!-- duration: 0ms -->
+      </step><!-- duration: 47ms -->
+      <step title="Preparing deployment for commit id &apos;6a4b27f0a0&apos;." date="2025-10-17T19:53:43.086" /><!-- duration: 0ms -->
+      <step title="Determining deployment builder" date="2025-10-17T19:53:43.118" >
+        <step title="Builder is BasicBuilder" date="2025-10-17T19:53:43.133" /><!-- duration: 0ms -->
+      </step><!-- duration: 16ms -->
+      <step title="Copying SSH keys" date="2025-10-17T19:53:43.149" /><!-- duration: 0ms -->
+      <step title="Building" date="2025-10-17T19:53:43.149" >
+        <step title="Generating deployment script." date="2025-10-17T19:53:43.196" /><!-- duration: 16ms -->
+        <step title="Generating deployment script" date="2025-10-17T19:53:43.211" >
+          <step title="Using cached version of the deployment script for command: -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;" date="2025-10-17T19:53:43.258" /><!-- duration: 0ms -->
+          <step title="Using cached version of deployment script (command: &apos;azure -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --basic --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;&apos;)." date="2025-10-17T19:53:43.258" /><!-- duration: 16ms -->
+        </step><!-- duration: 63ms -->
+        <step title="Running deployment command..." date="2025-10-17T19:53:43.305" /><!-- duration: 0ms -->
+        <step title="Command: &quot;C:\home\site\deployments\tools\deploy.cmd&quot;" date="2025-10-17T19:53:43.321" /><!-- duration: 0ms -->
+        <step title="Executing external process" date="2025-10-17T19:53:43.336" type="process" path="starter.cmd" arguments="&quot;C:\home\site\deployments\tools\deploy.cmd&quot;" >
+          <step title="Handling Basic Web Site deployment." date="2025-10-17T19:53:44.336" /><!-- duration: 0ms -->
+          <step title="Creating app_offline.htm" date="2025-10-17T19:53:44.352" /><!-- duration: 0ms -->
+          <step title="KuduSync.NET from: &apos;C:\local\Temp\zipdeploy\extracted&apos; to: &apos;C:\home\site\wwwroot&apos;" date="2025-10-17T19:53:44.352" /><!-- duration: 0ms -->
+          <step title="Deleting file: &apos;DEPLOYMENT-INSTRUCTIONS.txt&apos;" date="2025-10-17T19:53:44.368" /><!-- duration: 0ms -->
+          <step title="Deleting file: &apos;setup-database-user.sql&apos;" date="2025-10-17T19:53:44.368" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;.env&apos;" date="2025-10-17T19:53:44.383" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;package-lock.json&apos;" date="2025-10-17T19:53:44.399" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.package-lock.json&apos;" date="2025-10-17T19:53:44.415" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mime&apos;" date="2025-10-17T19:53:44.430" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mime.cmd&apos;" date="2025-10-17T19:53:44.446" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\mime.ps1&apos;" date="2025-10-17T19:53:44.446" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\prebuild-install&apos;" date="2025-10-17T19:53:44.461" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\prebuild-install.cmd&apos;" date="2025-10-17T19:53:44.477" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\prebuild-install.ps1&apos;" date="2025-10-17T19:53:44.493" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\rc&apos;" date="2025-10-17T19:53:44.524" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\rc.cmd&apos;" date="2025-10-17T19:53:44.540" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\rc.ps1&apos;" date="2025-10-17T19:53:44.555" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\semver&apos;" date="2025-10-17T19:53:44.571" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\.bin\semver.cmd&apos;" date="2025-10-17T19:53:44.571" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\.bin\semver.ps1&apos;" date="2025-10-17T19:53:44.586" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\accepts\HISTORY.md&apos;" date="2025-10-17T19:53:44.586" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\accepts\index.js&apos;" date="2025-10-17T19:53:44.602" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\accepts\LICENSE&apos;" date="2025-10-17T19:53:44.602" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\accepts\package.json&apos;" date="2025-10-17T19:53:44.618" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\accepts\README.md&apos;" date="2025-10-17T19:53:44.618" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\array-flatten\array-flatten.js&apos;" date="2025-10-17T19:53:44.618" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\array-flatten\LICENSE&apos;" date="2025-10-17T19:53:44.636" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\array-flatten\package.json&apos;" date="2025-10-17T19:53:44.636" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\array-flatten\README.md&apos;" date="2025-10-17T19:53:44.667" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\base64-js\base64js.min.js&apos;" date="2025-10-17T19:53:44.683" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\base64-js\index.d.ts&apos;" date="2025-10-17T19:53:44.683" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\base64-js\index.js&apos;" date="2025-10-17T19:53:44.698" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\base64-js\LICENSE&apos;" date="2025-10-17T19:53:44.698" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\base64-js\package.json&apos;" date="2025-10-17T19:53:44.714" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\base64-js\README.md&apos;" date="2025-10-17T19:53:44.730" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\HISTORY.md&apos;" date="2025-10-17T19:53:44.745" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\index.js&apos;" date="2025-10-17T19:53:44.745" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\LICENSE&apos;" date="2025-10-17T19:53:44.761" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\package.json&apos;" date="2025-10-17T19:53:44.776" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\README.md&apos;" date="2025-10-17T19:53:44.776" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\SECURITY.md&apos;" date="2025-10-17T19:53:44.776" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\lib\read.js&apos;" date="2025-10-17T19:53:44.792" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\lib\types\json.js&apos;" date="2025-10-17T19:53:44.808" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\lib\types\raw.js&apos;" date="2025-10-17T19:53:44.808" /><!-- duration: 16ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\lib\types\text.js&apos;" date="2025-10-17T19:53:44.823" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\body-parser\lib\types\urlencoded.js&apos;" date="2025-10-17T19:53:44.839" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\bytes\History.md&apos;" date="2025-10-17T19:53:44.839" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\bytes\index.js&apos;" date="2025-10-17T19:53:44.855" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\bytes\LICENSE&apos;" date="2025-10-17T19:53:44.870" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\bytes\package.json&apos;" date="2025-10-17T19:53:44.886" /><!-- duration: 0ms -->
+          <step title="Copying file: &apos;node_modules\bytes\Readme.md&apos;" date="2025-10-17T19:53:44.886" /><!-- duration: 0ms -->
+          <step title="Omitting next output lines..." date="2025-10-17T19:53:44.901" /><!-- duration: 0ms -->
+          <step title="Finished successfully." date="2025-10-17T19:53:51.042" /><!-- duration: 0ms -->
+        </step><!-- duration: 7705ms -->
+        <step title="Running post deployment command(s)..." date="2025-10-17T19:53:51.073" /><!-- duration: 0ms -->
+        <step title="Triggering recycle (preview mode disabled)." date="2025-10-17T19:53:51.089" /><!-- duration: 16ms -->
+        <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-10-17T19:53:51.104" /><!-- duration: 0ms -->
+        <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = ZipDeploy. Extract zip. , deployer = ZipDeploy, os = windows, sku = PremiumV4, siteName = customer-portal, siteHostName = customer-portal-adbudbhae3gjcrhm.centralus-01.azurewebsites.net, deploymentStatus = Success" date="2025-10-17T19:53:51.120" /><!-- duration: 0ms -->
+      </step><!-- duration: 8018ms -->
+    </step><!-- duration: 8237ms -->
+    <step title="Cleaning up temp files" date="2025-10-17T19:53:51.167" /><!-- duration: 0ms -->
+    <step title="Skip function trigger and logicapp sync because function is not enabled." date="2025-10-17T19:53:51.183" /><!-- duration: 0ms -->
+  </step><!-- duration: 9424ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-10-17T19:53:51.183" /><!-- duration: 16ms -->
+  <step title="Deleting shutdown sentinel file" date="2025-10-17T19:53:51.198" SemaphoreCount="8" /><!-- duration: 0ms -->
+</step><!-- duration: 9503ms -->

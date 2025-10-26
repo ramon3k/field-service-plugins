@@ -1,0 +1,404 @@
+/* Customer Portal App Styles */
+.customer-portal-container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.customer-portal-header {
+  background: white;
+  padding: 20px 40px;
+  border-bottom: 1px solid #e1e5e9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.customer-portal-header h1 {
+  color: #333;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.customer-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.customer-info span {
+  color: #666;
+  font-weight: 500;
+}
+
+.logout-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #c82333;
+}
+
+.portal-content {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 30px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.success-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.welcome-section {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-section h2 {
+  color: #333;
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.welcome-section p {
+  color: #666;
+  margin: 0 0 40px 0;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.sites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+.site-card {
+  background: #f8f9fa;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.site-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.site-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #28a745;
+}
+
+.site-card:hover::before {
+  transform: scaleX(1);
+}
+
+.site-card h3 {
+  color: #333;
+  margin: 0 0 16px 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.site-description {
+  color: #666;
+  margin: 0 0 24px 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.request-service-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.request-service-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+  transition: left 0.3s ease;
+}
+
+.request-service-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.request-service-btn:hover::before {
+  left: 100%;
+}
+
+.no-sites-message {
+  text-align: center;
+  padding: 60px 20px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 12px;
+  margin-top: 40px;
+}
+
+.no-sites-message p {
+  color: #856404;
+  font-size: 18px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .customer-portal-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .customer-portal-header h1 {
+    font-size: 20px;
+  }
+
+  .portal-content {
+    padding: 20px;
+  }
+
+  .welcome-section {
+    padding: 30px 20px;
+  }
+
+  .welcome-section h2 {
+    font-size: 24px;
+  }
+
+  .welcome-section p {
+    font-size: 16px;
+    margin-bottom: 30px;
+  }
+
+  .sites-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .site-card {
+    padding: 24px 20px;
+  }
+
+  .site-card h3 {
+    font-size: 20px;
+  }
+
+  .site-description {
+    font-size: 15px;
+  }
+
+  .request-service-btn {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .portal-content {
+    padding: 15px;
+  }
+
+  .welcome-section {
+    padding: 20px 15px;
+  }
+
+  .welcome-section h2 {
+    font-size: 22px;
+  }
+
+  .customer-portal-header {
+    padding: 15px;
+  }
+
+  .customer-info {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .success-message {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Service Request Form Styles */
+.service-request-section {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  margin: 30px auto;
+  max-width: 800px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.service-request-section h2 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.service-request-section > p {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.service-request-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-control {
+  padding: 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-control.readonly {
+  background-color: #f8f9fa;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.form-control textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
+}
+
+.form-text {
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.form-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submit-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  min-width: 200px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .service-request-section {
+    padding: 24px;
+    margin: 20px 16px;
+  }
+  
+  .service-request-section h2 {
+    font-size: 24px;
+  }
+  
+  .form-actions {
+    justify-content: stretch;
+  }
+  
+  .submit-btn {
+    width: 100%;
+  }
+}

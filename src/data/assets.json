@@ -1,0 +1,58 @@
+[
+  {
+    "AssetID": "CAM-001",
+    "Customer": "Ramrex, Inc.",
+    "Site": "Main Warehouse",
+    "Type": "Camera",
+    "Make": "Hikvision",
+    "Model": "DS-2CD2043G2-I",
+    "SerialNumber": "HK001234567",
+    "InstallDate": "2024-01-15",
+    "WarrantyExpires": "2027-01-15",
+    "Status": "Active",
+    "Location": "Dock Door 3",
+    "IPAddress": "192.168.1.101"
+  },
+  {
+    "AssetID": "CAM-002", 
+    "Customer": "TechCorp Solutions",
+    "Site": "Headquarters",
+    "Type": "Camera",
+    "Make": "Axis",
+    "Model": "P3245-LV",
+    "SerialNumber": "AX987654321",
+    "InstallDate": "2024-03-20",
+    "WarrantyExpires": "2027-03-20",
+    "Status": "Active",
+    "Location": "Main Entrance",
+    "IPAddress": "192.168.1.102"
+  },
+  {
+    "AssetID": "DVR-001",
+    "Customer": "Ramrex, Inc.", 
+    "Site": "Main Warehouse",
+    "Type": "DVR",
+    "Make": "Hikvision",
+    "Model": "DS-7616NI-K2/16P",
+    "SerialNumber": "HK555666777",
+    "InstallDate": "2024-01-15",
+    "WarrantyExpires": "2027-01-15",
+    "Status": "Active",
+    "Location": "Server Room",
+    "IPAddress": "192.168.1.100"
+  },
+  {
+    "AssetID": "ACC-001",
+    "Customer": "TechCorp Solutions",
+    "Site": "Headquarters", 
+    "Type": "Access Control",
+    "Make": "HID",
+    "Model": "VertX V2000",
+    "SerialNumber": "HID123456789",
+    "InstallDate": "2024-02-10",
+    "WarrantyExpires": "2027-02-10",
+    "Status": "Active",
+    "Location": "Main Controller",
+    "IPAddress": "192.168.1.200"
+  }
+]

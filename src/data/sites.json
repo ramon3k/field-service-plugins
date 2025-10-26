@@ -1,0 +1,38 @@
+[
+  {
+    "Customer": "Ramrex, Inc.",
+    "Site": "Main Warehouse",
+    "Address": "123 Warehouse Dr, Industrial Park, ST 12345",
+    "ContactName": "John Smith",
+    "ContactPhone": "(555) 123-4568",
+    "SiteType": "Warehouse",
+    "GeoLocation": "40.7128,-74.0060"
+  },
+  {
+    "Customer": "Ramrex, Inc.",
+    "Site": "gfsdgsdfg",
+    "Address": "789 Office Plaza, Business District, ST 12346", 
+    "ContactName": "Jane Doe",
+    "ContactPhone": "(555) 123-4569",
+    "SiteType": "Office",
+    "GeoLocation": "40.7589,-73.9851"
+  },
+  {
+    "Customer": "TechCorp Solutions",
+    "Site": "Headquarters",
+    "Address": "456 Tech Ave, Innovation City, CA 90210",
+    "ContactName": "Bob Johnson", 
+    "ContactPhone": "(555) 987-6544",
+    "SiteType": "Office",
+    "GeoLocation": "34.0522,-118.2437"
+  },
+  {
+    "Customer": "Global Retail Chain",
+    "Site": "Store #001",
+    "Address": "789 Retail Blvd, Commerce Town, TX 75001",
+    "ContactName": "Alice Brown",
+    "ContactPhone": "(555) 456-7891", 
+    "SiteType": "Retail",
+    "GeoLocation": "32.7767,-96.7970"
+  }
+]

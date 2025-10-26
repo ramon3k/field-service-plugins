@@ -1,0 +1,36 @@
+{
+  "name": "field-service-customer-portal",
+  "version": "1.0.0",
+  "description": "Standalone customer service request portal - web-hostable public submission form",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node -e \"console.log('✅ Package installed successfully')\""
+  },
+  "keywords": [
+    "service-request",
+    "customer-portal",
+    "field-service",
+    "support-form"
+  ],
+  "author": "Knight Industries",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mssql": "^12.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/field-service-customer-portal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/field-service-customer-portal/issues"
+  },
+  "homepage": "https://github.com/yourusername/field-service-customer-portal#readme"
+}

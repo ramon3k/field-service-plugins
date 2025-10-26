@@ -1,0 +1,13 @@
+{
+  "name": "field-service-api",
+  "version": "1.0.0",
+  "description": "Field Service Management API",
+  "main": "server/api.cjs",
+  "scripts": {
+    "start": "node server/api.cjs",
+    "dev": "node server/api.cjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
