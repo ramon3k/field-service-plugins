@@ -78,6 +78,17 @@ jobs:
           # Create zip only from curated release directory
           (cd "$RELEASE_DIR" && zip -r ../field-service-plugins-${{ github.ref_name }}.zip .)
 
+      - name: Package Time Clock plugin (if present)
+        run: |
+          set -e
+          if [ -d time-clock-plugin-package ]; then
+            (cd time-clock-plugin-package && zip -r ../time-clock-plugin.zip .)
+          elif [ -f time-clock-plugin.zip ]; then
+            echo "Using existing time-clock-plugin.zip"
+          else
+            echo "No time-clock plugin found to package."
+          fi
+
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
@@ -85,6 +96,6 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
-          artifacts: field-service-plugins-${{ github.ref_name }}.zip
+          artifacts: field-service-plugins-${{ github.ref_name }}.zip,time-clock-plugin.zip
           artifactErrorsFailBuild: true
           generateReleaseNotes: true

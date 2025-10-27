@@ -1,3 +1,9 @@
+## [2.1.2] - 2025-10-27
+
+### Packaging
+- Release now attaches `time-clock-plugin.zip` as a separate asset in addition to the curated main app zip.
+
+---
 ## [2.1.1] - 2025-10-27
 
 ### Packaging
