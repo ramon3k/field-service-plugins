@@ -27,6 +27,13 @@ jobs:
           args: detect --source . --report-format sarif --report-path gitleaks.sarif
         continue-on-error: true
 
+      - name: Ensure SARIF exists (empty if no report)
+        if: always()
+        run: |
+          if [ ! -f gitleaks.sarif ]; then
+            echo '{"version":"2.1.0","runs":[]}' > gitleaks.sarif
+          fi
+
       - name: Upload SARIF to GitHub
         if: always()
         uses: github/codeql-action/upload-sarif@v3
