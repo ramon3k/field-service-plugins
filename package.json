@@ -1,8 +1,9 @@
 {
   "name": "field-service-react",
-  "version": "0.2.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
+  "license": "AGPL-3.0-only",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
