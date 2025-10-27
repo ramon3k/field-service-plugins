@@ -27,11 +27,27 @@ jobs:
           args: detect --source . --report-format sarif --report-path gitleaks.sarif
         continue-on-error: true
 
-      - name: Ensure SARIF exists (empty if no report)
+      - name: Ensure SARIF exists (valid empty SARIF if no report)
         if: always()
         run: |
           if [ ! -f gitleaks.sarif ]; then
-            echo '{"version":"2.1.0","runs":[]}' > gitleaks.sarif
+            cat > gitleaks.sarif << 'EOF'
+            {
+              "version": "2.1.0",
+              "runs": [
+                {
+                  "tool": {
+                    "driver": {
+                      "name": "gitleaks",
+                      "informationUri": "https://github.com/gitleaks/gitleaks",
+                      "rules": []
+                    }
+                  },
+                  "results": []
+                }
+              ]
+            }
+            EOF
           fi
 
       - name: Upload SARIF to GitHub
@@ -39,3 +55,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: gitleaks.sarif
+          category: gitleaks
