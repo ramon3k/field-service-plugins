@@ -8,10 +8,14 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
+// Plugin System Imports
+const PluginManager = require('./plugin-manager');
+const { initializePluginRoutes } = require('./routes/plugin-routes');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-console.log('?fÜÇ Field Service API startup build: 2025-10-22T18:45Z');
+console.log('?fï¿½ï¿½ Field Service API startup build: 2025-10-22T18:45Z');
 
 // Middleware - Allow all origins and custom headers for frontend communication
 app.use((req, res, next) => {
@@ -102,11 +106,12 @@ const dbConfig = isLocalDB ? {
 
 // Single connection pool for the application
 let pool = null;
+let pluginManager = null;
 
 // Initialize database connection
 async function initializeDatabase() {
   try {
-    console.log('?föî Connecting to database:', {
+    console.log('?fï¿½ï¿½ Connecting to database:', {
       server: dbConfig.server,
       database: dbConfig.database,
       user: dbConfig.user || '(Windows Auth)',
@@ -115,21 +120,52 @@ async function initializeDatabase() {
     });
     pool = new sql.ConnectionPool(dbConfig);
     await pool.connect();
-    console.log(`?£à Connected to database: ${dbConfig.database}`);
+    console.log(`?ï¿½ï¿½ Connected to database: ${dbConfig.database}`);
   } catch (err) {
-    console.error('?¥î Failed to connect to database:', err.message);
+    console.error('?ï¿½ï¿½ Failed to connect to database:', err.message);
     if (isLocalDB && err.message.includes('msnodesqlv8')) {
-      console.error('?fÆí Hint: Install msnodesqlv8 for Windows authentication: npm install msnodesqlv8');
+      console.error('?fï¿½ï¿½ Hint: Install msnodesqlv8 for Windows authentication: npm install msnodesqlv8');
     }
     throw err;
   }
 }
 
+// Initialize plugin system
+async function initializePluginSystem() {
+  try {
+    console.log('ðŸ”Œ Initializing plugin system...');
+    pluginManager = new PluginManager(pool);
+    
+    // For now, initialize with default company code
+    // In a real multi-tenant system, you'd load plugins per tenant on demand
+    const defaultCompany = 'DCPSP';
+    await pluginManager.initialize(defaultCompany);
+    
+    console.log('âœ… Plugin system initialized successfully');
+  } catch (error) {
+    console.error('âŒ Failed to initialize plugin system:', error);
+    console.warn('âš ï¸ Continuing without plugin system...');
+  }
+}
+
 // Initialize on startup
-initializeDatabase().catch(err => {
-  console.error('Fatal: Could not initialize database connection', err);
-  process.exit(1);
-});
+initializeDatabase()
+  .then(() => initializePluginSystem())
+  .then(() => {
+    // Initialize plugin routes after plugin system is ready
+    initializePluginRoutes(app, pluginManager, pool);
+    
+    // Start server AFTER all routes are registered (including plugin routes)
+    app.listen(PORT, '127.0.0.1', () => {
+      console.log(`?fï¿½ï¿½ Field Service API running on http://127.0.0.1:${PORT}`);
+      console.log(`?fï¿½ï¿½ Database: Azure SQL - ${process.env.DB_SERVER}/${process.env.DB_NAME}`);
+      console.log(`?fï¿½ï¿½ Test the API: http://127.0.0.1:${PORT}/api/test`);
+    });
+  })
+  .catch(err => {
+    console.error('Fatal: Could not initialize database connection', err);
+    process.exit(1);
+  });
 
 // Shared helper to safely record activity log entries with tenant isolation
 async function logActivity(req, {
@@ -180,7 +216,7 @@ async function validateUserId(userId) {
       .query('SELECT ID FROM Users WHERE ID = @userId');
     
     if (result.recordset.length === 0) {
-      console.warn(`?Üá??Å User ID ${userId} not found in Users table, using admin_001 as fallback`);
+      console.warn(`?ï¿½ï¿½??ï¿½ User ID ${userId} not found in Users table, using admin_001 as fallback`);
       return 'admin_001';
     }
     
@@ -282,7 +318,7 @@ async function attachCompanyCode(req, res, next) {
     const userId = req.headers['x-user-id'];
     
     if (!userId) {
-      console.warn('?Üá??Å No user ID in request headers - data isolation may be compromised');
+      console.warn('?ï¿½ï¿½??ï¿½ No user ID in request headers - data isolation may be compromised');
       if (headerCompanyCode) {
         req.userCompanyCode = headerCompanyCode;
         req.userCompanyName = headerCompanyName || null;
@@ -297,13 +333,13 @@ async function attachCompanyCode(req, res, next) {
     
     if (result.recordset.length === 0) {
       if (headerCompanyCode) {
-        console.warn(`?Üá??Å User ${userId} not found - falling back to provided company header ${headerCompanyCode}`);
+        console.warn(`?ï¿½ï¿½??ï¿½ User ${userId} not found - falling back to provided company header ${headerCompanyCode}`);
         req.userCompanyCode = headerCompanyCode;
         req.userCompanyName = headerCompanyName || null;
         req.userRole = req.headers['x-user-role'] || null;
         return next();
       }
-      console.error(`?¥î User ${userId} not found or inactive`);
+      console.error(`?ï¿½ï¿½ User ${userId} not found or inactive`);
       return res.status(401).json({ error: 'User not found or inactive' });
     }
     
@@ -312,7 +348,7 @@ async function attachCompanyCode(req, res, next) {
     req.userCompanyName = headerCompanyName || null;
     req.userRole = user.Role;
     
-    console.log(`?föÆ Data isolation: User ${userId} restricted to company: ${user.CompanyCode} (${user.Role})`);
+    console.log(`?fï¿½ï¿½ Data isolation: User ${userId} restricted to company: ${user.CompanyCode} (${user.Role})`);
     
     next();
   } catch (err) {
@@ -327,6 +363,18 @@ async function attachCompanyCode(req, res, next) {
     next();
   }
 }
+
+// TEST: Add a route BEFORE middleware to verify synchronous routes work
+app.get('/api/sync-test', (req, res) => {
+  console.log('ðŸŽ¯ /api/sync-test route HIT!');
+  res.json({ message: 'Synchronous route works!' });
+});
+
+// REQUEST LOGGER - log all incoming requests
+app.use((req, res, next) => {
+  console.log(`ðŸ“¥ ${req.method} ${req.path}`);
+  next();
+});
 
 // Apply the middleware to all routes after this point
 app.use(attachCompanyCode);
@@ -355,7 +403,7 @@ app.get('/api/tickets', async (req, res) => {
     const companyCode = req.userCompanyCode;
     
     if (!companyCode) {
-      console.warn('?Üá??Å No CompanyCode found for tickets query');
+      console.warn('?ï¿½ï¿½??ï¿½ No CompanyCode found for tickets query');
       return res.status(403).json({ error: 'Company access required' });
     }
     
@@ -551,7 +599,7 @@ app.post('/api/tickets', async (req, res) => {
       companyCode
     });
     
-    console.log(`?£à Created new ticket ${ticketId}`);
+    console.log(`?ï¿½ï¿½ Created new ticket ${ticketId}`);
     res.json({ message: 'Ticket created successfully', ticketId });
   } catch (err) {
     console.error('Error creating ticket:', err);
@@ -579,7 +627,7 @@ app.put('/api/tickets/:id', async (req, res) => {
       .query('SELECT TicketID FROM Tickets WHERE TicketID = @ticketId AND CompanyCode = @companyCode');
     
     if (verifyResult.recordset.length === 0) {
-      console.log(`?¥î Ticket ${ticketId} not found or access denied for company ${companyCode}`);
+      console.log(`?ï¿½ï¿½ Ticket ${ticketId} not found or access denied for company ${companyCode}`);
       return res.status(404).json({ error: 'Ticket not found' });
     }
     
@@ -692,7 +740,7 @@ app.put('/api/tickets/:id', async (req, res) => {
       }
     }
     
-    console.log(`?£à Updated ticket ${ticketId}. Changed: ${changeDetails.join(', ')}`);
+    console.log(`?ï¿½ï¿½ Updated ticket ${ticketId}. Changed: ${changeDetails.join(', ')}`);
     res.json(ticket);
     
   } catch (err) {
@@ -754,7 +802,7 @@ app.post('/api/tickets/:id/audit', async (req, res) => {
         `);
     }
     
-    console.log(`?£à Saved ${newEntries.length} new audit entries for ticket ${ticketId}`);
+    console.log(`?ï¿½ï¿½ Saved ${newEntries.length} new audit entries for ticket ${ticketId}`);
     res.json({ message: 'Audit entries saved successfully', count: newEntries.length });
     
   } catch (err) {
@@ -771,23 +819,23 @@ app.post('/api/auth/login', async (req, res) => {
     const normalizedUsername = typeof username === 'string' ? username.trim() : '';
     const normalizedCompanyCode = (tenantCode || headerCompanyCode || '').trim().toUpperCase();
 
-    console.log('?fôÑ Login request received:');
+    console.log('?fï¿½ï¿½ Login request received:');
     console.log('  - username:', normalizedUsername || '(missing)');
     console.log('  - tenantCode (body/header):', normalizedCompanyCode || 'NOT PROVIDED');
     console.log('  - req header company:', headerCompanyCode || '(none)');
     console.log('  - hasPassword:', !!password);
 
     if (!normalizedUsername || !password) {
-      console.log('?¥î Missing credentials');
+      console.log('?ï¿½ï¿½ Missing credentials');
       return res.status(400).json({ error: 'Username and password required' });
     }
 
     if (!normalizedCompanyCode) {
-      console.log('?¥î Missing company code for login');
+      console.log('?ï¿½ï¿½ Missing company code for login');
       return res.status(400).json({ error: 'Company code required' });
     }
 
-    console.log(`?föÉ Login attempt: ${normalizedUsername} with company code: ${normalizedCompanyCode}`);
+    console.log(`?fï¿½ï¿½ Login attempt: ${normalizedUsername} with company code: ${normalizedCompanyCode}`);
 
     // Confirm company exists and is active
     const companyCheck = await pool.request()
@@ -799,7 +847,7 @@ app.post('/api/auth/login', async (req, res) => {
       `);
 
     if (companyCheck.recordset.length === 0) {
-      console.log('?¥î Company not found or inactive');
+      console.log('?ï¿½ï¿½ Company not found or inactive');
       return res.status(404).json({ error: 'Company not found or inactive' });
     }
 
@@ -812,10 +860,10 @@ app.post('/api/auth/login', async (req, res) => {
         WHERE Username = @username AND IsActive = 1
       `);
 
-    console.log(`?fôè Query result: Found ${result.recordset.length} active user(s) with username`);
+    console.log(`?fï¿½ï¿½ Query result: Found ${result.recordset.length} active user(s) with username`);
 
     if (result.recordset.length === 0) {
-      console.log('?¥î User not found or inactive');
+      console.log('?ï¿½ï¿½ User not found or inactive');
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
@@ -826,13 +874,13 @@ app.post('/api/auth/login', async (req, res) => {
 
     if (matchingUsers.length === 0) {
       const availableCodes = [...new Set(result.recordset.map(row => (row.CompanyCode || '').trim().toUpperCase()))];
-      console.log('?¥î No user/company match found', { normalizedCompanyCode, availableCodes });
+      console.log('?ï¿½ï¿½ No user/company match found', { normalizedCompanyCode, availableCodes });
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
     const user = matchingUsers[0];
     const userCompanyCode = (user.CompanyCode || '').trim().toUpperCase();
-    console.log('?fº« Company code comparison:', {
+    console.log('?fï¿½ï¿½ Company code comparison:', {
       normalizedCompanyCode,
       userCompanyCode,
       originalUserCompanyCode: user.CompanyCode,
@@ -842,19 +890,19 @@ app.post('/api/auth/login', async (req, res) => {
     });
 
     const resolvedCompanyCode = userCompanyCode;
-    console.log(`?fæñ User found: ${user.Username} (${user.Role}) in company: ${resolvedCompanyCode}`);
+    console.log(`?fï¿½ï¿½ User found: ${user.Username} (${user.Role}) in company: ${resolvedCompanyCode}`);
     
     // Verify password (base64 encoded in database)
     const passwordBase64 = Buffer.from(password).toString('base64');
     
-    console.log(`?föæ Password check: Provided hash=${passwordBase64}, Stored hash=${user.PasswordHash}, Match=${user.PasswordHash === passwordBase64}`);
+    console.log(`?fï¿½ï¿½ Password check: Provided hash=${passwordBase64}, Stored hash=${user.PasswordHash}, Match=${user.PasswordHash === passwordBase64}`);
     
     if (user.PasswordHash !== passwordBase64) {
-      console.log('?¥î Password mismatch');
+      console.log('?ï¿½ï¿½ Password mismatch');
       return res.status(401).json({ error: 'Invalid username or password' });
     }
     
-    console.log('?£à Login successful!');
+    console.log('?ï¿½ï¿½ Login successful!');
     // Fetch company information for branding
     let companyName = resolvedCompanyCode; // Fallback to code
     let companyDisplayName = resolvedCompanyCode;
@@ -863,7 +911,7 @@ app.post('/api/auth/login', async (req, res) => {
       const company = companyCheck.recordset[0];
       companyName = company.CompanyName || resolvedCompanyCode;
       companyDisplayName = company.DisplayName || company.CompanyName || resolvedCompanyCode;
-      console.log(`?fÅó Company branding: ${companyDisplayName}`);
+      console.log(`?fï¿½ï¿½ Company branding: ${companyDisplayName}`);
     } catch (companyErr) {
       console.warn('Could not resolve company branding (non-critical):', companyErr.message);
     }
@@ -941,7 +989,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
       .input('passwordHash', sql.NVarChar, encodedPassword)
       .query('UPDATE Users SET PasswordHash = @passwordHash WHERE ID = @userId');
     
-    console.log(`?£à Password reset for user: ${user.Username} (ID: ${userId})`);
+    console.log(`?ï¿½ï¿½ Password reset for user: ${user.Username} (ID: ${userId})`);
     
     // Log the activity
     const passwordResetCompanyCode = req.userCompanyCode || user.CompanyCode || req.headers['x-company-code'];
@@ -997,7 +1045,7 @@ app.get('/api/users', async (req, res) => {
       companyCode: user.CompanyCode
     }));
     
-    console.log(`?£à Retrieved ${users.length} users from SQL database for company ${companyCode}`);
+    console.log(`?ï¿½ï¿½ Retrieved ${users.length} users from SQL database for company ${companyCode}`);
     res.json(users);
   } catch (err) {
     console.error('Error fetching users:', err);
@@ -1067,7 +1115,7 @@ app.post('/api/users', async (req, res) => {
       companyCode
     });
 
-    console.log(`?£à Created new user ${userId}`);
+    console.log(`?ï¿½ï¿½ Created new user ${userId}`);
     res.json({ message: 'User created successfully', userId });
   } catch (err) {
     console.error('Error creating user:', err);
@@ -1100,7 +1148,7 @@ app.put('/api/users/:id', async (req, res) => {
         WHERE ID = @userId
       `);
     
-    console.log(`?£à Updated user ${userId}`);
+    console.log(`?ï¿½ï¿½ Updated user ${userId}`);
     res.json({ message: 'User updated successfully' });
   } catch (err) {
     console.error('Error updating user:', err);
@@ -1129,7 +1177,7 @@ app.delete('/api/users/:id', async (req, res) => {
       .input('userId', sql.NVarChar, userId)
       .query('DELETE FROM Users WHERE ID = @userId');
     
-    console.log(`?£à Deleted user ${userId} (${username})`);
+    console.log(`?ï¿½ï¿½ Deleted user ${userId} (${username})`);
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
     console.error('Error deleting user:', err);
@@ -1190,7 +1238,7 @@ app.get('/api/licenses', async (req, res) => {
     const companyCode = req.userCompanyCode;
 
     if (!companyCode) {
-      console.warn('?Üá??Å No CompanyCode found for licenses query');
+      console.warn('?ï¿½ï¿½??ï¿½ No CompanyCode found for licenses query');
       return res.status(403).json({ error: 'Company access required' });
     }
 
@@ -1212,7 +1260,7 @@ app.get('/api/licenses/:id', async (req, res) => {
     const companyCode = req.userCompanyCode;
 
     if (!companyCode) {
-      console.warn('?Üá??Å No CompanyCode found for license query');
+      console.warn('?ï¿½ï¿½??ï¿½ No CompanyCode found for license query');
       return res.status(403).json({ error: 'Company access required' });
     }
 
@@ -1297,7 +1345,7 @@ app.post('/api/licenses', async (req, res) => {
         )
       `);
     
-    console.log(`?£à Created license ${licenseId} for ${Customer} - ${Site}`);
+    console.log(`?ï¿½ï¿½ Created license ${licenseId} for ${Customer} - ${Site}`);
     
     // Log activity
     await logActivity(req, {
@@ -1419,7 +1467,7 @@ app.post('/api/sites', async (req, res) => {
     const site = req.body;
     const siteID = `SITE-${Date.now()}`;
     
-    console.log('?fô¥ Creating site with data:', JSON.stringify(site, null, 2));
+    console.log('?fï¿½ï¿½ Creating site with data:', JSON.stringify(site, null, 2));
     
     // Determine customer name - frontend might send it as Customer, CustomerName, or we need to look it up
     let customerName = site.Customer || '';
@@ -1433,14 +1481,14 @@ app.post('/api/sites', async (req, res) => {
         
         if (customerResult.recordset.length > 0) {
           customerName = customerResult.recordset[0].Name;
-          console.log(`?£à Looked up customer name: ${customerName}`);
+          console.log(`?ï¿½ï¿½ Looked up customer name: ${customerName}`);
         }
       } catch (lookupErr) {
-        console.warn('?Üá??Å Could not lookup customer name:', lookupErr.message);
+        console.warn('?ï¿½ï¿½??ï¿½ Could not lookup customer name:', lookupErr.message);
       }
     }
     
-    console.log(`?fôî Final values - CustomerID: ${site.CustomerID || site.CustomerId || ''}, Customer: ${customerName}`);
+    console.log(`?fï¿½ï¿½ Final values - CustomerID: ${site.CustomerID || site.CustomerId || ''}, Customer: ${customerName}`);
     
     // Make sure to provide empty strings (not null) for optional fields to avoid null constraint errors
     await pool.request()
@@ -1467,7 +1515,7 @@ app.post('/api/sites', async (req, res) => {
       companyCode
     });
     
-    console.log(`?£à Created new site ${siteID}`);
+    console.log(`?ï¿½ï¿½ Created new site ${siteID}`);
     res.json({ success: true, siteID });
   } catch (err) {
     console.error('Error creating site:', err);
@@ -1525,7 +1573,7 @@ app.put('/api/sites/:id', async (req, res) => {
     const site = req.body;
     const companyCode = req.userCompanyCode || req.headers['x-company-code'];
     
-    console.log('?fô¥ Updating site:', id, 'with data:', JSON.stringify(site, null, 2));
+    console.log('?fï¿½ï¿½ Updating site:', id, 'with data:', JSON.stringify(site, null, 2));
     
     // Determine customer name - look it up if only CustomerID is provided
     let customerName = site.Customer || '';
@@ -1538,10 +1586,10 @@ app.put('/api/sites/:id', async (req, res) => {
         
         if (customerResult.recordset.length > 0) {
           customerName = customerResult.recordset[0].Name;
-          console.log(`?£à Looked up customer name: ${customerName}`);
+          console.log(`?ï¿½ï¿½ Looked up customer name: ${customerName}`);
         }
       } catch (lookupErr) {
-        console.warn('?Üá??Å Could not lookup customer name:', lookupErr.message);
+        console.warn('?ï¿½ï¿½??ï¿½ Could not lookup customer name:', lookupErr.message);
       }
     }
     
@@ -1625,7 +1673,7 @@ app.delete('/api/sites/:id', async (req, res) => {
       .input('siteId', sql.NVarChar, siteId)
       .query('DELETE FROM Sites WHERE SiteID = @siteId');
     
-    console.log(`?£à Deleted site ${siteId} (${siteName})`);
+    console.log(`?ï¿½ï¿½ Deleted site ${siteId} (${siteName})`);
     
     // Log the site deletion activity
     try {
@@ -1709,7 +1757,7 @@ app.put('/api/licenses/:id', async (req, res) => {
     const { id } = req.params;
     const license = req.body;
     
-    console.log('?fô¥ Updating license:', id);
+    console.log('?fï¿½ï¿½ Updating license:', id);
     console.log('   Received Status:', license.Status);
     console.log('   Full license data:', JSON.stringify(license, null, 2));
     
@@ -1766,7 +1814,7 @@ app.put('/api/licenses/:id', async (req, res) => {
         WHERE LicenseID = @LicenseID
       `);
     
-    console.log('?£à License updated successfully:', id, '- Status set to:', statusValue);
+    console.log('?ï¿½ï¿½ License updated successfully:', id, '- Status set to:', statusValue);
     
     // Return the updated license to confirm changes
     const result = await pool.request()
@@ -1774,7 +1822,7 @@ app.put('/api/licenses/:id', async (req, res) => {
       .query('SELECT * FROM Licenses WHERE LicenseID = @LicenseID');
     
     if (result.recordset.length > 0) {
-      console.log('?£à Verified license Status in DB:', result.recordset[0].Status);
+      console.log('?ï¿½ï¿½ Verified license Status in DB:', result.recordset[0].Status);
       res.json({ success: true, license: result.recordset[0] });
     } else {
       res.json({ success: true });
@@ -2039,7 +2087,7 @@ app.get('/api/activity-log', async (req, res) => {
     
     const result = await request.query(query);
     
-    console.log(`?£à Retrieved ${result.recordset.length} activity log entries`);
+    console.log(`?ï¿½ï¿½ Retrieved ${result.recordset.length} activity log entries`);
     
     // Map ActivityLog fields to match frontend expectations
     const mappedResults = result.recordset.map(record => ({
@@ -2386,7 +2434,7 @@ app.post('/api/tickets/:id/coordinator-notes', async (req, res) => {
         VALUES (@noteId, @ticketId, @note, @createdBy, @createdAt)
       `);
     
-    console.log(`?£à Added coordinator note to ticket ${ticketId}`);
+    console.log(`?ï¿½ï¿½ Added coordinator note to ticket ${ticketId}`);
     res.json({ 
       success: true, 
       note: {
@@ -2529,7 +2577,7 @@ app.post('/api/tickets/:ticketId/attachments', upload.single('file'), async (req
       console.warn('Could not create attachment upload activity log (non-critical):', activityErr.message);
     }
 
-    console.log(`?£à Uploaded attachment ${attachmentId} for ticket ${ticketId}`);
+    console.log(`?ï¿½ï¿½ Uploaded attachment ${attachmentId} for ticket ${ticketId}`);
     res.json({ success: true, attachment: { id: attachmentId, fileName: file.filename, originalName: file.originalname } });
   } catch (err) {
     console.error('Error uploading attachment:', err);
@@ -2553,7 +2601,7 @@ app.get('/api/attachments/:id', async (req, res) => {
     const attachment = result.recordset[0];
     const filePath = path.join(__dirname, attachment.FilePath);
     
-    console.log('?fôÄ Download request for:', id);
+    console.log('?fï¿½ï¿½ Download request for:', id);
     console.log('   __dirname:', __dirname);
     console.log('   FilePath from DB:', attachment.FilePath);
     console.log('   Resolved path:', filePath);
@@ -2561,7 +2609,7 @@ app.get('/api/attachments/:id', async (req, res) => {
     
     // Check if file exists
     if (!fs.existsSync(filePath)) {
-      console.error('?¥î File not found on disk:', filePath);
+      console.error('?ï¿½ï¿½ File not found on disk:', filePath);
       return res.status(404).json({ 
         error: 'File not found on disk',
         details: {
@@ -2572,7 +2620,7 @@ app.get('/api/attachments/:id', async (req, res) => {
       });
     }
     
-    console.log('?£à File found, streaming to client');
+    console.log('?ï¿½ï¿½ File found, streaming to client');
     
     // Set appropriate headers
     res.setHeader('Content-Type', attachment.FileType || 'application/octet-stream');
@@ -2582,7 +2630,7 @@ app.get('/api/attachments/:id', async (req, res) => {
     // Stream the file
     const fileStream = fs.createReadStream(filePath);
     fileStream.on('error', (err) => {
-      console.error('?¥î Error streaming file:', err);
+      console.error('?ï¿½ï¿½ Error streaming file:', err);
       if (!res.headersSent) {
         res.status(500).json({ error: 'Error streaming file' });
       }
@@ -2761,8 +2809,8 @@ app.post('/api/companies', async (req, res) => {
     // Commit transaction
     await transaction.commit();
 
-    console.log(`?£à Created new company: ${companyCode} - ${companyName}`);
-    console.log(`?£à Created admin user: ${adminUsername} for ${companyCode}`);
+    console.log(`?ï¿½ï¿½ Created new company: ${companyCode} - ${companyName}`);
+    console.log(`?ï¿½ï¿½ Created admin user: ${adminUsername} for ${companyCode}`);
     
     res.status(201).json({
       company: companyResult.recordset[0],
@@ -2819,7 +2867,7 @@ app.put('/api/companies/:code', async (req, res) => {
       return res.status(404).json({ error: 'Company not found' });
     }
 
-    console.log(`?£à Updated company: ${code}`);
+    console.log(`?ï¿½ï¿½ Updated company: ${code}`);
     res.json(result.recordset[0]);
   } catch (err) {
     console.error('Error updating company:', err);
@@ -2850,7 +2898,7 @@ app.delete('/api/companies/:code', async (req, res) => {
       return res.status(404).json({ error: 'Company not found' });
     }
 
-    console.log(`?£à Deactivated company: ${code}`);
+    console.log(`?ï¿½ï¿½ Deactivated company: ${code}`);
     res.json({ message: 'Company deactivated successfully', company: result.recordset[0] });
   } catch (err) {
     console.error('Error deleting company:', err);
@@ -2864,10 +2912,5 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`?fÜÇ Field Service API running on http://localhost:${PORT}`);
-  console.log(`?fôè Database: Azure SQL - ${process.env.DB_SERVER}/${process.env.DB_NAME}`);
-  console.log(`?föº Test the API: http://localhost:${PORT}/api/test`);
-});
+// Server is started in the initialization chain above after plugins are loaded
 

@@ -1,0 +1,160 @@
+.ticket-time-clock {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.time-clock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.time-clock-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1a202c;
+}
+
+.ticket-badge {
+  background: #3b82f6;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ticket-time-clock-loading {
+  padding: 2rem;
+  text-align: center;
+  color: #718096;
+}
+
+.time-clock-error {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.time-clock-status {
+  margin-bottom: 1.5rem;
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.status-indicator.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-indicator.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.current-session,
+.last-session {
+  background: white;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.current-session h4,
+.last-session h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #2d3748;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.session-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+}
+
+.detail-row .label {
+  color: #718096;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.detail-row .value {
+  color: #1a202c;
+  font-weight: 600;
+}
+
+.detail-row .value.highlight {
+  color: #3b82f6;
+  font-size: 1.125rem;
+}
+
+.time-clock-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.clock-in-button,
+.clock-out-button {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clock-in-button {
+  background: #48bb78;
+  color: white;
+}
+
+.clock-in-button:hover:not(:disabled) {
+  background: #38a169;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(72, 187, 120, 0.3);
+}
+
+.clock-out-button {
+  background: #f56565;
+  color: white;
+}
+
+.clock-out-button:hover:not(:disabled) {
+  background: #e53e3e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 101, 101, 0.3);
+}
+
+.clock-in-button:disabled,
+.clock-out-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

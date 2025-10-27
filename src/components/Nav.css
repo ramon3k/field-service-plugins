@@ -1,0 +1,59 @@
+.nav-container {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.nav-tabs {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0;
+  flex: 1;
+  align-items: center;
+}
+
+.nav-tabs button {
+  white-space: nowrap;
+  position: relative;
+  flex-shrink: 0;
+  width: auto !important;
+  min-width: fit-content;
+  max-width: fit-content;
+  flex-grow: 0 !important;
+  flex-basis: auto !important;
+  display: inline-block;
+}
+
+.nav-user-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-user-info {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.nav-button {
+  padding: 0.5rem 1rem;
+}
+
+.request-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+}

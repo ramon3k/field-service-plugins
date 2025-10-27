@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import type { AuthUser } from '../types'
 import { authService } from '../services/AuthService'
+import './Nav.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
@@ -89,29 +90,16 @@ export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCou
   const tabs = getAvailableTabs()
   
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-      <div className="row" style={{ margin: 0 }}>
+    <div className="nav-container">
+      <div className="nav-tabs">
         {tabs.map(t => (
           <button key={t}
             className={tab===t? 'primary' : 'ghost'}
             onClick={()=>setTab(t)}
-            style={{ position: 'relative' }}
           >
             {t}
             {t === 'Requests' && newRequestsCount > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-8px',
-                right: '-8px',
-                backgroundColor: '#e74c3c',
-                color: 'white',
-                borderRadius: '10px',
-                padding: '2px 6px',
-                fontSize: '11px',
-                fontWeight: 'bold',
-                minWidth: '20px',
-                textAlign: 'center'
-              }}>
+              <span className="request-badge">
                 {newRequestsCount}
               </span>
             )}
@@ -119,14 +107,14 @@ export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCou
         ))}
       </div>
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <span style={{ color: '#666', fontSize: '0.9rem' }}>
+      <div className="nav-user-section">
+        <span className="nav-user-info">
           Welcome, {currentUser?.fullName} ({currentUser?.role})
         </span>
-        <button className="ghost" onClick={handleChangePassword} style={{ padding: '0.5rem 1rem' }}>
+        <button className="ghost nav-button" onClick={handleChangePassword}>
           Change Password
         </button>
-        <button className="ghost" onClick={onLogout} style={{ padding: '0.5rem 1rem' }}>
+        <button className="ghost nav-button" onClick={onLogout}>
           Logout
         </button>
       </div>
