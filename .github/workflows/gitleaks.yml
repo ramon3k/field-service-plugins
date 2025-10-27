@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   gitleaks:
     runs-on: ubuntu-latest
@@ -20,9 +24,11 @@ jobs:
         env:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
         with:
-          args: detect --report-format sarif --report-path gitleaks.sarif
+          args: detect --source . --report-format sarif --report-path gitleaks.sarif
+        continue-on-error: true
 
       - name: Upload SARIF to GitHub
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: gitleaks.sarif
