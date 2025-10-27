@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] - 2025-10-27
+
+### Plugin-focused Release
+
+This release finalizes the plugin-enabled distribution and production readiness.
+
+### Added
+- CORS configuration with ALLOWED_ORIGINS env var and credential support for secure cross-origin auth flows
+- Distribution packaging updates to include plugin docs and template
+
+### Changed
+- API now trusts proxy in Azure App Service for proper cookie/security headers
+
+### Fixed
+- Addressed frontend CORS/login issues by moving from wildcard headers to strict cors middleware
+
+---
+
 ## [2.0.0] - 2025-10-27
 
 ### 🎉 Major Release - Plugin System

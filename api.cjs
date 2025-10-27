@@ -9,25 +9,41 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
+const cors = require('cors');
 const PORT = process.env.PORT || 5000;
 
 console.log('🚀 Field Service API startup build: 2025-10-22T18:45Z');
 
-// Middleware - Allow all origins and custom headers for frontend communication
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, X-User-Role, X-User-FullName, x-user-role, x-user-name, x-user-id, x-user-timezone, X-Company-Code, x-company-code, X-Company-Name, x-company-name'
-  );
-  res.header('Access-Control-Expose-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
-});
+// CORS configuration - allow specific origins and credentials for cookies/auth
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow same-origin/no-origin (mobile apps, curl)
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-User-Role', 'X-User-FullName', 'x-user-role', 'x-user-name', 'x-user-id', 'x-user-timezone',
+    'X-Company-Code', 'x-company-code', 'X-Company-Name', 'x-company-name'
+  ],
+  exposedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+app.set('trust proxy', 1); // for secure cookies behind proxies
 app.use(express.json());
+// (express.json middleware already applied above)
 
 // Ensure uploads directory exists for attachments
 const uploadDir = path.join(__dirname, 'uploads');
