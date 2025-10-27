@@ -1,3 +1,9 @@
+## [2.1.3] - 2025-10-27
+
+### Plugin Example
+- Time Clock plugin updated to v1.0.1 with MIT LICENSE, metadata (license + compatibility), and README adjusted. Releases will include the updated ZIP.
+
+---
 ## [2.1.2] - 2025-10-27
 
 ### Packaging

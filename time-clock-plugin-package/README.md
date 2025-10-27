@@ -314,4 +314,4 @@ For issues or feature requests, contact DCPSP support.
 
 ## License
 
-Copyright DCPSP. All rights reserved.
+MIT License — see LICENSE in this folder.
