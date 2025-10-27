@@ -1,3 +1,9 @@
+## [2.1.1] - 2025-10-27
+
+### Packaging
+- Curated release artifact: includes only main app (dist, api/server), plugin templates/examples, and docs. Excludes standalone customer portal and repo-only extras.
+
+---
 # Changelog
 
 All notable changes to the Field Service Management System will be documented in this file.
