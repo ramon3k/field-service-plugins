@@ -814,28 +814,22 @@ app.post('/api/tickets/:id/audit', async (req, res) => {
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { username, password, tenantCode } = req.body;
-    const headerCompanyCode = req.headers['x-company-code'] || req.headers['x-companycode'];
+    const { username, password } = req.body;
     const normalizedUsername = typeof username === 'string' ? username.trim() : '';
-    const normalizedCompanyCode = (tenantCode || headerCompanyCode || '').trim().toUpperCase();
+    // Single-company mode: always use DCPSP
+    const normalizedCompanyCode = 'DCPSP';
 
-    console.log('?f�� Login request received:');
+    console.log('🔵 Login request received:');
     console.log('  - username:', normalizedUsername || '(missing)');
-    console.log('  - tenantCode (body/header):', normalizedCompanyCode || 'NOT PROVIDED');
-    console.log('  - req header company:', headerCompanyCode || '(none)');
+    console.log('  - company code (hardcoded):', normalizedCompanyCode);
     console.log('  - hasPassword:', !!password);
 
     if (!normalizedUsername || !password) {
-      console.log('?�� Missing credentials');
+      console.log('❌ Missing credentials');
       return res.status(400).json({ error: 'Username and password required' });
     }
 
-    if (!normalizedCompanyCode) {
-      console.log('?�� Missing company code for login');
-      return res.status(400).json({ error: 'Company code required' });
-    }
-
-    console.log(`?f�� Login attempt: ${normalizedUsername} with company code: ${normalizedCompanyCode}`);
+    console.log(`🔵 Login attempt: ${normalizedUsername} with company code: ${normalizedCompanyCode}`);
 
     // Confirm company exists and is active
     const companyCheck = await pool.request()
@@ -847,7 +841,7 @@ app.post('/api/auth/login', async (req, res) => {
       `);
 
     if (companyCheck.recordset.length === 0) {
-      console.log('?�� Company not found or inactive');
+      console.log('❌ Company not found or inactive');
       return res.status(404).json({ error: 'Company not found or inactive' });
     }
 

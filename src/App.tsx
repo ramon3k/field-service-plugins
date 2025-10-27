@@ -41,7 +41,7 @@ export default function App() {
   const [editTicket, setEditTicket] = useState<Ticket|undefined>(undefined)
   const [isNewTicket, setIsNewTicket] = useState(false)
   const [error, setError] = useState<string|undefined>(undefined)
-  const [tab, setTab] = useState<'Tickets'|'Map'|'Calendar'|'Reports'|'Closed'|'Users'|'Companies'|'Activity'|'Customers'|'Sites'|'Licenses'|'Vendors'|'Requests'|'Plugins'>('Tickets')
+  const [tab, setTab] = useState<'Tickets'|'Map'|'Calendar'|'Reports'|'Closed'|'Users'|'Activity'|'Customers'|'Sites'|'Licenses'|'Vendors'|'Requests'|'Plugins'>('Tickets')
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
   const [currentTenant, setCurrentTenant] = useState<TenantInfo | null>(null)
   const [companyDisplayName, setCompanyDisplayName] = useState<string>('DCPSP Field Service') // Dynamic company branding
@@ -138,6 +138,8 @@ export default function App() {
         try {
           const sqlUser = JSON.parse(sqlUserStr);
           console.log('👤 Found stored user:', sqlUser.username, 'Company:', sqlUser.companyCode);
+          console.log('🔍 sqlUser.id from localStorage:', sqlUser.id);
+          console.log('🔍 Full sqlUser object:', sqlUser);
           
           setCurrentUser(sqlUser);
           setIsAuthenticated(true);
@@ -433,8 +435,27 @@ export default function App() {
   console.log('🔍 App Render State:', {
     isAuthenticated,
     hasUser: !!currentUser,
+    userId: currentUser?.id,
+    username: currentUser?.username,
     userCompany: currentUser?.companyCode
   });
+
+  // Don't render anything until we have both authentication AND user data
+  if (isAuthenticated && !currentUser) {
+    console.log('⏳ Waiting for user data to load...');
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Loading user data...
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -495,7 +516,6 @@ export default function App() {
             />
           )}
           {tab==='Users' && <UserManagementPage currentUser={currentUser} />}
-          {tab==='Companies' && <CompanyManagementPage />}
           {tab==='Plugins' && <PluginManagerPage />}
           {tab==='Activity' && <ActivityLogPage />}
           {tab==='Customers' && <CustomersPage />}
@@ -512,6 +532,7 @@ export default function App() {
               onSave={handleEditSave} 
               readonly={editTicket.Status === 'Closed'}
               companyName={companyDisplayName}
+              currentUser={currentUser}
             />
           )}
         </>

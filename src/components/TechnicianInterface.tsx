@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import type { Ticket, AuthUser } from '../types'
 import { authService } from '../services/AuthService'
 import AttachmentUpload from './AttachmentUpload'
+import TicketTimeClock from './plugins/TicketTimeClock'
 
 interface PluginTab {
   id: string
@@ -795,10 +796,32 @@ function TechnicianEditModal({ ticket, currentUser, onClose, onSave }: {
           {pluginTabs.map(tab => {
             if (activeTab !== tab.id) return null
             
-            // Plugin tabs will render when components are dynamically loaded
+            // Map componentId to actual React components
+            const pluginComponents: Record<string, React.ComponentType<any>> = {
+              'ticket-time-clock': TicketTimeClock
+            }
+            
+            const PluginComponent = pluginComponents[tab.componentId]
+            
+            if (!PluginComponent) {
+              return (
+                <div key={tab.id} style={{ padding: '20px' }}>
+                  <p>Plugin component "{tab.componentId}" not available</p>
+                </div>
+              )
+            }
+            
+            // Render the plugin component with required props
+            const technicianId = currentUser?.id || localStorage.getItem('userId') || currentUser?.username || ''
+            
             return (
               <div key={tab.id}>
-                <p>Plugin component "{tab.componentId}" not loaded</p>
+                <PluginComponent 
+                  ticketId={ticket.TicketID}
+                  technicianId={technicianId}
+                  companyCode="DCPSP"
+                  onUpdate={() => onSave(editedTicket)}
+                />
               </div>
             )
           })}

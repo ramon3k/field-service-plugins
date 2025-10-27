@@ -6,6 +6,7 @@ import DatePicker from './DatePicker'
 import PrintableServiceTicket from './PrintableServiceTicket'
 import AttachmentUpload from './AttachmentUpload'
 import AttachmentList from './AttachmentList'
+import TicketTimeClock from './plugins/TicketTimeClock'
 import type { Ticket, AuditEntry, CoordinatorNote, User } from '../types'
 
 function sanitizeTicket(ticket: Ticket): Ticket {
@@ -54,13 +55,14 @@ type Props = {
   onSave: (ticket: Ticket) => Promise<void>
   readonly?: boolean
   companyName?: string // Optional company name for print branding
+  currentUser: any // User from parent App component
 }
 
-export default function TicketEditModal({ ticket, onClose, onSave, readonly = false, companyName = 'Field Service' }: Props) {
+export default function TicketEditModal({ ticket, onClose, onSave, readonly = false, companyName = 'Field Service', currentUser: propCurrentUser }: Props) {
   const [editedTicket, setEditedTicket] = useState<Ticket>(() => sanitizeTicket(ticket))
   const [loading, setLoading] = useState(false)
   const [newNote, setNewNote] = useState('')
-  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'history' | 'attachments'>('details')
+  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'history' | 'attachments' | string>('details')
   const [customers, setCustomers] = useState<string[]>([])
   const [allSites, setAllSites] = useState<any[]>([])
   const [filteredSites, setFilteredSites] = useState<string[]>([])
@@ -68,11 +70,36 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
   const [users, setUsers] = useState<User[]>([])
   const [showPrintModal, setShowPrintModal] = useState(false)
   const [attachmentRefresh, setAttachmentRefresh] = useState(0)
+  const [pluginTabs, setPluginTabs] = useState<Array<{
+    id: string
+    label: string
+    icon: string
+    componentId: string
+    pluginId: string
+    roles: string[]
+  }>>([])
+  
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+  // Use the currentUser passed from parent (App.tsx) instead of AuthService
+  const currentUser = propCurrentUser
 
   useEffect(() => {
     setEditedTicket(sanitizeTicket(ticket))
     loadDropdownData()
+    fetchPluginTabs()
   }, [ticket])
+  
+  const fetchPluginTabs = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/plugins/ticket-tabs`)
+      if (response.ok) {
+        const data = await response.json()
+        setPluginTabs(data.tabs || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch plugin tabs:', error)
+    }
+  }
 
   useEffect(() => {
     // Filter sites when customer changes
@@ -151,11 +178,11 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
   )
 
   const createAuditEntry = (field: string, oldValue: any, newValue: any): AuditEntry => {
-    const currentUser = authService.getCurrentUser()
+    // Use propCurrentUser from parent instead of AuthService
     return {
       id: Date.now().toString(),
       timestamp: new Date().toISOString(),
-      user: currentUser?.fullName || 'Unknown User',
+      user: propCurrentUser?.fullName || 'Unknown User',
       action: 'Field Updated',
       field,
       oldValue: oldValue?.toString() || '',
@@ -177,8 +204,8 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
       // Auto-populate ClosedBy and ClosedDate when status changes to Closed
       let finalTicket = { ...editedTicket }
       if (editedTicket.Status === 'Closed' && ticket.Status !== 'Closed') {
-        const currentUser = authService.getCurrentUser()
-        finalTicket.ClosedBy = currentUser?.fullName || 'Unknown User'
+        // Use propCurrentUser from parent instead of AuthService
+        finalTicket.ClosedBy = propCurrentUser?.fullName || 'Unknown User'
         finalTicket.ClosedDate = new Date().toISOString()
       }
       
@@ -264,10 +291,10 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
   const addNote = () => {
     if (!newNote.trim()) return
     
-    const currentUser = authService.getCurrentUser()
+    // Use propCurrentUser from parent instead of AuthService
     const note: CoordinatorNote = {
       NoteID: Date.now().toString(),
-      CoordinatorName: currentUser?.fullName || 'Unknown User',
+      CoordinatorName: propCurrentUser?.fullName || 'Unknown User',
       Timestamp: new Date().toISOString(),
       Note: newNote.trim()
     }
@@ -359,6 +386,28 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
               }}
             >
               {tab}
+            </button>
+          ))}
+          {/* Plugin Tabs */}
+          {pluginTabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                padding: '1rem 1.5rem',
+                border: 'none',
+                backgroundColor: activeTab === tab.id ? 'white' : 'transparent',
+                color: activeTab === tab.id ? '#3b82f6' : '#4a5568',
+                fontWeight: activeTab === tab.id ? '500' : 'normal',
+                cursor: 'pointer',
+                borderBottom: activeTab === tab.id ? '2px solid #3b82f6' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
             </button>
           ))}
         </div>
@@ -850,6 +899,47 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
               />
             </div>
           )}
+          
+          {/* Render plugin tab content */}
+          {pluginTabs.map(tab => {
+            if (activeTab !== tab.id) return null
+            
+            // Map componentId to actual React components
+            const pluginComponents: Record<string, React.ComponentType<any>> = {
+              'ticket-time-clock': TicketTimeClock
+            }
+            
+            const PluginComponent = pluginComponents[tab.componentId]
+            
+            if (!PluginComponent) {
+              return (
+                <div key={tab.id} style={{ padding: '20px' }}>
+                  <p>Plugin component "{tab.componentId}" not available</p>
+                </div>
+              )
+            }
+            
+            // Render the plugin component with required props
+            console.log('🔍 TicketEditModal: Rendering plugin component')
+            console.log('🔍 currentUser from TicketEditModal:', currentUser)
+            console.log('🔍 currentUser.id:', currentUser?.id)
+            console.log('🔍 currentUser.username:', currentUser?.username)
+            console.log('🔍 Passing technicianId:', currentUser?.id || currentUser?.username || '')
+            
+            return (
+              <div key={tab.id}>
+                <PluginComponent 
+                  ticketId={editedTicket.TicketID}
+                  technicianId={currentUser?.id || currentUser?.username || ''}
+                  companyCode={currentUser?.companyCode || 'DCPSP'}
+                  onUpdate={async () => {
+                    // Refresh ticket data after plugin updates
+                    await onSave(editedTicket)
+                  }}
+                />
+              </div>
+            )
+          })}
         </div>
 
         {/* Action Buttons */}

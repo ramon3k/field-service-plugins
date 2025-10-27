@@ -73,10 +73,10 @@ export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCou
     const baseTabs = ['Tickets', 'Map']
     
     if (currentUser.role === 'SystemAdmin') {
-      // SystemAdmin can see everything including Companies management (multi-tenant super admin)
-      return ['Tickets','Map','Calendar','Reports','Closed','Requests','Users','Companies','Plugins','Activity','Customers','Sites','Licenses','Vendors']
+      // SystemAdmin can see everything
+      return ['Tickets','Map','Calendar','Reports','Closed','Requests','Users','Plugins','Activity','Customers','Sites','Licenses','Vendors']
     } else if (currentUser.role === 'Admin') {
-      // Company Admin can see everything except Companies management
+      // Admin can see everything except Plugins
       return ['Tickets','Map','Calendar','Reports','Closed','Requests','Users','Activity','Customers','Sites','Licenses','Vendors']
     } else if (currentUser.role === 'Coordinator') {
       return ['Tickets','Map','Calendar','Reports','Closed','Requests','Activity','Customers','Sites','Licenses','Vendors']

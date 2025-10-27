@@ -96,23 +96,46 @@ class PluginManager {
         return;
       }
 
+      // Clear require cache to ensure fresh plugin code is loaded
+      if (require.cache[require.resolve(pluginPath)]) {
+        delete require.cache[require.resolve(pluginPath)];
+      }
+
       // Load plugin module
-      const PluginClass = require(pluginPath);
+      const pluginModule = require(pluginPath);
       
       // Parse configuration
       const config = pluginMeta.ConfigurationJSON 
         ? JSON.parse(pluginMeta.ConfigurationJSON) 
         : {};
 
-      // Instantiate plugin
-      const plugin = new PluginClass({
-        id: pluginId,
-        name: pluginMeta.PluginName,
-        version: pluginMeta.Version,
-        config,
-        companyCode,
-        pool: this.pool
-      });
+      // Support both class-based and object-based plugins
+      let plugin;
+      if (typeof pluginModule === 'function') {
+        // Class-based plugin
+        plugin = new pluginModule({
+          id: pluginId,
+          name: pluginMeta.PluginName,
+          version: pluginMeta.Version,
+          config,
+          companyCode,
+          pool: this.pool
+        });
+      } else if (typeof pluginModule === 'object') {
+        // Object-based plugin (add metadata)
+        plugin = {
+          ...pluginModule,
+          id: pluginId,
+          name: pluginModule.name || pluginMeta.PluginName,
+          version: pluginModule.version || pluginMeta.Version,
+          config,
+          companyCode,
+          pool: this.pool
+        };
+      } else {
+        console.error(`❌ Invalid plugin format for ${pluginId}`);
+        return;
+      }
 
       // Initialize plugin
       if (typeof plugin.initialize === 'function') {
@@ -285,6 +308,36 @@ class PluginManager {
     if (pluginMeta.recordset.length > 0) {
       await this.loadPlugin(pluginMeta.recordset[0], companyCode);
     }
+  }
+
+  /**
+   * Reload all plugins for a company (useful after enable/disable operations)
+   */
+  async reloadAllPlugins(companyCode) {
+    console.log(`🔄 Reloading all plugins for ${companyCode}...`);
+    
+    // Unload all currently loaded plugins
+    const pluginIds = Array.from(this.loadedPlugins.keys());
+    for (const pluginId of pluginIds) {
+      await this.unloadPlugin(pluginId);
+    }
+    
+    // Clear module cache for plugin files to get fresh code
+    Object.keys(require.cache).forEach(key => {
+      if (key.includes('plugins')) {
+        delete require.cache[key];
+      }
+    });
+    
+    // Re-initialize with current enabled plugins
+    const enabledPlugins = await this.getEnabledPlugins(companyCode);
+    console.log(`📦 Found ${enabledPlugins.length} enabled plugins for ${companyCode}`);
+    
+    for (const pluginMeta of enabledPlugins) {
+      await this.loadPlugin(pluginMeta, companyCode);
+    }
+    
+    console.log(`✅ Reloaded ${this.loadedPlugins.size} plugins for ${companyCode}`);
   }
 
   /**

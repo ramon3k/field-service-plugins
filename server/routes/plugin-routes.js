@@ -134,7 +134,7 @@ function initializePluginRoutes(app, pluginManager, pool) {
       const { pluginId } = req.params;
       const companyCode = req.headers['x-company-code'] || 'DCPSP';
       const userId = req.headers['x-user-id'] || 'system';
-      const { configuration } = req.body;
+      const { configuration } = req.body || {}; // Configuration is optional
 
       // Check if plugin exists
       const pluginCheck = await pool.request()
@@ -465,6 +465,32 @@ function initializePluginRoutes(app, pluginManager, pool) {
   });
 
   // =============================================
+  // =============================================
+  // POST /api/plugins/reload
+  // Reload all plugins (refresh plugin system without server restart)
+  // =============================================
+  router.post('/reload', async (req, res) => {
+    try {
+      const companyCode = req.headers['x-company-code'] || 'DCPSP';
+
+      if (!pluginManager) {
+        return res.status(500).json({ error: 'Plugin manager not available' });
+      }
+
+      await pluginManager.reloadAllPlugins(companyCode);
+
+      res.json({ 
+        success: true, 
+        message: 'All plugins reloaded successfully',
+        loadedPlugins: Array.from(pluginManager.loadedPlugins.keys())
+      });
+    } catch (error) {
+      console.error('Error reloading plugins:', error);
+      res.status(500).json({ error: 'Failed to reload plugins' });
+    }
+  });
+
+  // =============================================
   // GET /api/plugins/ticket-tabs
   // Get available plugin ticket tabs
   // =============================================
@@ -505,13 +531,80 @@ function initializePluginRoutes(app, pluginManager, pool) {
     Object.entries(routesByPlugin).forEach(([pluginId, routes]) => {
       const pluginRouter = express.Router();
       
+      // CRITICAL: Check if plugin is enabled before allowing access
+      pluginRouter.use(async (req, res, next) => {
+        const companyCode = req.headers['x-company-code'] || 'DCPSP';
+        
+        try {
+          // First get the plugin GUID from the name
+          const pluginResult = await pool.request()
+            .input('pluginName', pluginId)
+            .query(`SELECT id FROM GlobalPlugins WHERE name = @pluginName`);
+          
+          if (!pluginResult.recordset.length) {
+            return res.status(404).json({ 
+              error: 'Plugin not found',
+              message: `Plugin ${pluginId} not found in system.`
+            });
+          }
+          
+          const pluginGuid = pluginResult.recordset[0].id;
+          
+          // Check if plugin is enabled for this company
+          const result = await pool.request()
+            .input('companyCode', companyCode)
+            .input('pluginGuid', pluginGuid)
+            .query(`
+              SELECT IsEnabled 
+              FROM TenantPluginInstallations 
+              WHERE TenantId = @companyCode AND PluginId = @pluginGuid
+            `);
+          
+          if (!result.recordset.length || !result.recordset[0].IsEnabled) {
+            return res.status(403).json({ 
+              error: 'Plugin is disabled',
+              message: `The ${pluginId} plugin is currently disabled. Please enable it in the Plugin Manager.`
+            });
+          }
+          
+          next();
+        } catch (error) {
+          console.error(`❌ Error checking plugin status for ${pluginId}:`, error);
+          return res.status(500).json({ error: 'Failed to verify plugin status' });
+        }
+      });
+      
+      // Add middleware to inject pool into request context
+      pluginRouter.use((req, res, next) => {
+        // Make sure pool is available in both locations
+        req.pool = pool;
+        if (!req.app.locals.pool) {
+          req.app.locals.pool = pool;
+        }
+        next();
+      });
+      
       routes.forEach(route => {
         const { method, path, handler } = route;
         const methodLower = method.toLowerCase();
         
+        // Wrap handler to ensure pool is available
+        const wrappedHandler = async (req, res, next) => {
+          req.pool = pool;
+          req.app.locals.pool = pool;
+          try {
+            await handler(req, res, next);
+          } catch (error) {
+            console.error(`❌ Error in ${pluginId} ${method} ${path}:`, error);
+            if (!res.headersSent) {
+              res.status(500).json({ error: 'Internal server error', details: error.message });
+            }
+          }
+        };
+        
         // Register route on plugin router (path is relative, e.g., '/clock-in')
         if (typeof pluginRouter[methodLower] === 'function') {
-          pluginRouter[methodLower](path, handler);
+          pluginRouter[methodLower](path, wrappedHandler);
           console.log(`  📍 Registered ${method.toUpperCase()} /api/plugins/${pluginId}${path}`);
         }
       });

@@ -24,6 +24,10 @@ export default function PluginManagerPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+  
+  // Get user context from localStorage
+  const companyCode = localStorage.getItem('companyCode') || 'DCPSP'
+  const userId = localStorage.getItem('userId') || 'system'
 
   useEffect(() => {
     fetchPlugins()
@@ -72,7 +76,13 @@ export default function PluginManagerPage() {
     try {
       setActionLoading(pluginId)
       const response = await fetch(`${API_BASE}/plugins/${pluginId}/install`, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-company-code': companyCode,
+          'x-user-id': userId
+        },
+        body: JSON.stringify({ configuration: {} }) // Empty configuration for now
       })
 
       if (!response.ok) {
@@ -128,11 +138,36 @@ export default function PluginManagerPage() {
       }
 
       await fetchPlugins()
-      alert(`Plugin ${currentlyEnabled ? 'disabled' : 'enabled'} successfully! Please refresh the page to see changes.`)
+      alert(`Plugin ${currentlyEnabled ? 'disabled' : 'enabled'} successfully! Click "Reload Plugins" to apply changes.`)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to toggle plugin')
     } finally {
       setActionLoading(null)
+    }
+  }
+
+  const handleReloadPlugins = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`${API_BASE}/plugins/reload`, {
+        method: 'POST',
+        headers: {
+          'x-company-code': companyCode
+        }
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to reload plugins')
+      }
+
+      const data = await response.json()
+      await fetchPlugins()
+      alert(`Plugins reloaded successfully!\n\nLoaded plugins: ${data.loadedPlugins.join(', ') || 'None'}`)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to reload plugins')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -177,21 +212,40 @@ export default function PluginManagerPage() {
           </p>
         </div>
         
-        <button
-          onClick={() => setShowUploadModal(true)}
-          style={{
-            padding: '10px 20px',
-            background: '#2563eb',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: '500',
-            fontSize: '14px'
-          }}
-        >
-          📦 Upload Plugin
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            onClick={handleReloadPlugins}
+            disabled={loading}
+            style={{
+              padding: '10px 20px',
+              background: loading ? '#9ca3af' : '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontWeight: '500',
+              fontSize: '14px'
+            }}
+          >
+            {loading ? '⏳ Reloading...' : '🔄 Reload Plugins'}
+          </button>
+          
+          <button
+            onClick={() => setShowUploadModal(true)}
+            style={{
+              padding: '10px 20px',
+              background: '#2563eb',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '500',
+              fontSize: '14px'
+            }}
+          >
+            📦 Upload Plugin
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gap: '16px' }}>

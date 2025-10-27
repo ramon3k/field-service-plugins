@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { Ticket, Site } from '../types'
+import TimeClockReport from './plugins/TimeClockReport'
 
 interface ReportsPageProps {
   tickets: Ticket[]
@@ -19,6 +20,51 @@ interface MetricCard {
   subtext?: string
   color?: string
   trend?: 'up' | 'down' | 'neutral'
+}
+
+interface ExpandableSectionProps {
+  title: string
+  children: React.ReactNode
+  defaultExpanded?: boolean
+}
+
+function ExpandableSection({ title, children, defaultExpanded = false }: ExpandableSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+
+  return (
+    <div style={{
+      background: 'white',
+      border: '1px solid #e0e0e0',
+      borderRadius: '8px',
+      marginBottom: '16px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <div
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{
+          padding: '16px 20px',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: isExpanded ? '1px solid #e0e0e0' : 'none',
+          userSelect: 'none'
+        }}
+      >
+        <h3 style={{ margin: 0, color: '#333', fontSize: '18px', fontWeight: '600' }}>
+          {title}
+        </h3>
+        <span style={{ fontSize: '20px', color: '#666' }}>
+          {isExpanded ? '▼' : '▶'}
+        </span>
+      </div>
+      {isExpanded && (
+        <div style={{ padding: '0' }}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function MetricCard({ title, value, subtext, color = '#333', trend }: MetricCard) {
@@ -268,6 +314,10 @@ export default function ReportsPage({ tickets, sites }: ReportsPageProps) {
   const [pluginReports, setPluginReports] = useState<PluginReportComponent[]>([])
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+  
+  // Get user context from localStorage
+  const companyCode = localStorage.getItem('companyCode') || 'DCPSP'
+  const userId = localStorage.getItem('userId') || 'system'
 
   // Fetch available plugin report components
   useEffect(() => {
@@ -293,7 +343,7 @@ export default function ReportsPage({ tickets, sites }: ReportsPageProps) {
 
   // Map of available plugin report components
   const pluginComponents: Record<string, React.ComponentType<any>> = {
-    // Plugin reports will be dynamically added here
+    'time-clock-report': TimeClockReport
   }
 
   const filteredTickets = useMemo(() => {
@@ -419,9 +469,17 @@ export default function ReportsPage({ tickets, sites }: ReportsPageProps) {
         if (!Component) return null
         
         return (
-          <div key={report.pluginId}>
-            <Component timeFilter={timeFilter} />
-          </div>
+          <ExpandableSection
+            key={report.pluginId}
+            title={report.title}
+            defaultExpanded={true}
+          >
+            <Component 
+              timeFilter={timeFilter}
+              companyCode={companyCode}
+              userId={userId}
+            />
+          </ExpandableSection>
         )
       })}
 

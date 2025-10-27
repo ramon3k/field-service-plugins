@@ -21,62 +21,68 @@ export class AuthService {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthUser> {
-    console.log('AuthService.login: Attempting login for:', credentials.username)
+    console.log('AuthService.login: Attempting SQL-based login for:', credentials.username)
     
-    // Load users from JSON data
-    const users = await this.getUsers()
-    
-    // Find user by username
-    const user = users.find(u => u.username.toLowerCase() === credentials.username.toLowerCase())
-    
-    if (!user) {
-      throw new Error('Invalid username or password')
+    try {
+      // Call the backend SQL authentication API
+      const response = await fetch('http://127.0.0.1:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: credentials.username,
+          password: credentials.password
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Login failed' }))
+        throw new Error(errorData.error || 'Login failed')
+      }
+
+      const data = await response.json()
+      
+      console.log('🔍 AuthService.login: Raw server response:', data)
+      
+      if (!data.success || !data.user) {
+        throw new Error('Invalid response from server')
+      }
+
+      console.log('🔍 AuthService.login: User ID from server:', data.user.id)
+
+      // Create auth user from server response
+      const authUser: AuthUser = {
+        id: data.user.id,
+        username: data.user.username,
+        email: data.user.email,
+        fullName: data.user.fullName,
+        role: data.user.role,
+        isActive: true,
+        permissions: data.user.permissions || [],
+        companyCode: data.user.companyCode,
+        companyName: data.user.companyName,
+        companyDisplayName: data.user.companyDisplayName
+      }
+      
+      console.log('✅ AuthService.login: Login successful, authUser created:', authUser)
+      console.log('🔍 AuthService.login: authUser.id =', authUser.id)
+      
+      // Store session
+      this.currentUser = authUser
+      const jsonString = JSON.stringify(authUser)
+      console.log('🔍 AuthService.login: Storing in localStorage:', jsonString)
+      localStorage.setItem(this.AUTH_KEY, jsonString)
+      
+      // Verify it was stored
+      const verification = localStorage.getItem(this.AUTH_KEY)
+      console.log('🔍 AuthService.login: Verification read from localStorage:', verification)
+      
+      return authUser
+    } catch (error) {
+      console.error('❌ AuthService.login: Error during SQL login:', error)
+      throw error
     }
-    
-    if (!user.isActive) {
-      throw new Error('Account is disabled')
-    }
-    
-    // Verify password - simplified for demo
-    // For demo purposes, accept any non-empty password
-    console.log('AuthService: Simple password check for user:', user.username);
-    console.log('AuthService: Password provided:', credentials.password);
-    
-    if (!credentials.password || credentials.password.trim() === '') {
-      console.log('AuthService: Password verification FAILED - empty password');
-      throw new Error('Password cannot be empty')
-    }
-    
-    // For demo: accept "password" or "admin" as valid passwords
-    const validPasswords = ['password', 'admin', '123456'];
-    if (!validPasswords.includes(credentials.password)) {
-      console.log('AuthService: Password verification FAILED - invalid password');
-      console.log('AuthService: Valid passwords are:', validPasswords);
-      throw new Error('Invalid username or password')
-    }
-    
-    console.log('AuthService: Password verification SUCCESS');
-    
-    // Create auth user (without password hash)
-    const authUser: AuthUser = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-      isActive: user.isActive,
-      permissions: user.permissions
-    }
-    
-    // Log login activity
-    await this.logLoginActivity(user)
-    
-    // Store session
-    this.currentUser = authUser
-    localStorage.setItem(this.AUTH_KEY, JSON.stringify(authUser))
-    
-    console.log('AuthService.login: Login successful for:', authUser.username)
-    return authUser
   }
 
   logout(): void {
@@ -92,6 +98,8 @@ export class AuthService {
   }
 
   getCurrentUser(): AuthUser | null {
+    console.log('🔍 getCurrentUser called, returning:', this.currentUser)
+    console.log('🔍 getCurrentUser - user ID:', this.currentUser?.id)
     return this.currentUser
   }
 
@@ -112,12 +120,17 @@ export class AuthService {
   private restoreSession(): void {
     try {
       const stored = localStorage.getItem(this.AUTH_KEY)
+      console.log('🔍 AuthService: Raw localStorage value:', stored)
       if (stored) {
         this.currentUser = JSON.parse(stored)
-        console.log('AuthService: Session restored for:', this.currentUser?.username)
+        console.log('✅ AuthService: Session restored for user:', this.currentUser?.username)
+        console.log('🔍 AuthService: User ID from storage:', this.currentUser?.id)
+        console.log('🔍 AuthService: Full user object:', this.currentUser)
+      } else {
+        console.log('⚠️ AuthService: No stored session found')
       }
     } catch (error) {
-      console.error('AuthService: Error restoring session:', error)
+      console.error('❌ AuthService: Error restoring session:', error)
       localStorage.removeItem(this.AUTH_KEY)
     }
   }

@@ -1,0 +1,9 @@
+{
+  "name": "time-clock",
+  "displayName": "Technician Time Clock",
+  "version": "1.0.0",
+  "description": "Track technician time in/out for tickets with automatic note generation and comprehensive reporting",
+  "author": "DCPSP",
+  "category": "time-tracking",
+  "isOfficial": true
+}

@@ -179,6 +179,7 @@ export type User = {
 export type LoginCredentials = {
   username: string
   password: string
+  tenantCode?: string
 }
 
 export type AuthUser = {
