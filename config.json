@@ -3,7 +3,7 @@
     "CompanyCode":  "KIT",
     "DatabaseServer":  "localhost\\SQLEXPRESS",
     "EnableAutoUpdates":  false,
-    "AdminPassword":  "abc123",
+    "AdminPassword":  "",
     "BackupTime":  "02:00",
     "AdminEmail":  "admin@dcpsp.com",
     "DatabaseAuth":  "Windows",

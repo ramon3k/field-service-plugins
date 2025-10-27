@@ -1,11 +1,23 @@
 const sql = require('mssql');
+const crypto = require('crypto');
+require('dotenv').config();
 
-// Azure SQL Database Configuration
+// Azure SQL Database Configuration (via environment variables)
+const DB_SERVER = process.env.DEMO_DB_SERVER || process.env.DB_SERVER;
+const DB_NAME = process.env.DEMO_DB_NAME || process.env.DB_NAME || 'FieldServiceDB-DEMO';
+const DB_USER = process.env.DEMO_DB_USER || process.env.DB_USER;
+const DB_PASSWORD = process.env.DEMO_DB_PASSWORD || process.env.DB_PASSWORD;
+
+if (!DB_SERVER || !DB_USER || !DB_PASSWORD) {
+  console.error('❌ Missing database configuration. Please set DEMO_DB_SERVER, DEMO_DB_NAME, DEMO_DB_USER, DEMO_DB_PASSWORD in a local .env file (not committed).');
+  process.exit(1);
+}
+
 const config = {
-  server: 'customer-portal-sql-server.database.windows.net',
-  database: 'FieldServiceDB-DEMO',
-  user: 'customerportaladmin',
-  password: 'Welcome123!',
+  server: DB_SERVER,
+  database: DB_NAME,
+  user: DB_USER,
+  password: DB_PASSWORD,
   options: {
     encrypt: true,
     trustServerCertificate: false,
@@ -27,11 +39,13 @@ async function createDemoUsers() {
     console.log('✅ Connected to FieldServiceDB-DEMO\n');
 
     // Demo users to create
+    const plainPassword = process.env.DEMO_PASSWORD || crypto.randomBytes(10).toString('base64');
+    const encodedPassword = Buffer.from(plainPassword).toString('base64');
     const users = [
       {
         id: 'demo-admin',
         username: 'demo-admin',
-        password: Buffer.from('demo123').toString('base64'), // Base64 encoded
+        password: encodedPassword, // Base64 encoded
         fullName: 'Demo Administrator',
         email: 'demo-admin@demo.com',
         role: 'Admin',
@@ -40,7 +54,7 @@ async function createDemoUsers() {
       {
         id: 'demo-coordinator',
         username: 'demo-coordinator',
-        password: Buffer.from('demo123').toString('base64'),
+        password: encodedPassword,
         fullName: 'Demo Coordinator',
         email: 'demo-coordinator@demo.com',
         role: 'Coordinator',
@@ -49,7 +63,7 @@ async function createDemoUsers() {
       {
         id: 'demo-tech',
         username: 'demo-tech',
-        password: Buffer.from('demo123').toString('base64'),
+        password: encodedPassword,
         fullName: 'Demo Technician',
         email: 'demo-tech@demo.com',
         role: 'Technician',
@@ -88,7 +102,7 @@ async function createDemoUsers() {
         console.log(`✅ Created user: ${user.username} (${user.role})`);
         console.log(`   - Full Name: ${user.fullName}`);
         console.log(`   - Email: ${user.email}`);
-        console.log(`   - Password: demo123 (encoded: ${user.password})`);
+        console.log(`   - Password: ${plainPassword}`);
         console.log(`   - Company Code: ${user.companyCode}\n`);
       } catch (err) {
         console.error(`❌ Error creating user ${user.username}:`, err.message);
@@ -109,7 +123,7 @@ async function createDemoUsers() {
     console.log('\n📝 Login Credentials:');
     console.log('   Company Code: DEMO');
     console.log('   Username: demo-admin, demo-coordinator, or demo-tech');
-    console.log('   Password: demo123');
+  console.log(`   Password: ${plainPassword}`);
 
   } catch (err) {
     console.error('❌ Error:', err);

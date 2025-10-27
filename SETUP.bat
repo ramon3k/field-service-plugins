@@ -43,6 +43,13 @@ set "APP_NAME=Field Service Management System"
 set "SERVICE_NAME=FieldServiceAPI"
 set "LOG_FILE=%INSTALL_DIR%install.log"
 
+:: Security: Require SQL 'sa' password for fresh SQL Express installs
+if not defined SQL_SA_PASSWORD (
+    echo.
+    echo SECURITY: A strong SQL Server 'sa' password is required for installation.
+    set /p SQL_SA_PASSWORD=Enter SQL 'sa' password (will be used only during setup): 
+)
+
 :: Read configuration from config.json if it exists
 set "DB_NAME=FieldServiceDB"
 set "DB_SERVER=localhost\SQLEXPRESS"
@@ -157,7 +164,7 @@ if "%SQL_INSTALLED%"=="false" (
     echo This may take 10-15 minutes. Please wait...
     
     if exist "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" (
-        "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="FieldService123!" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic
+    "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="%SQL_SA_PASSWORD%" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic
         if !errorLevel! equ 0 (
             echo [√] SQL Server Express installed successfully
             echo [√] SQL Server Express installation completed >> "%LOG_FILE%"
@@ -171,7 +178,7 @@ if "%SQL_INSTALLED%"=="false" (
         echo [!] SQL Server installer not found. Downloading...
         powershell -Command "Invoke-WebRequest -Uri 'https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLEXPR_x64_ENU.exe' -OutFile '%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe'"
         if exist "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" (
-            "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="FieldService123!" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic
+            "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="%SQL_SA_PASSWORD%" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic
         ) else (
             echo ERROR: Could not download SQL Server Express
             echo Please download manually and place in installers\ folder

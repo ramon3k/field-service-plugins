@@ -15,6 +15,13 @@ interface Plugin {
   isEnabled?: boolean
 }
 
+// Shape of installed plugin info returned by `/plugins/installed`
+interface InstalledPluginInfo {
+  PluginID: string
+  IsEnabled: boolean
+  [key: string]: any
+}
+
 export default function PluginManagerPage() {
   const [plugins, setPlugins] = useState<Plugin[]>([])
   const [installedPluginIds, setInstalledPluginIds] = useState<Set<string>>(new Set())
@@ -48,9 +55,9 @@ export default function PluginManagerPage() {
       if (!installedResponse.ok) throw new Error('Failed to fetch installed plugins')
       const installedData = await installedResponse.json()
 
-      // Create a map of installed plugin statuses
-      const installedMap = new Map(
-        installedData.plugins.map((p: any) => [p.PluginID, p])
+      // Create a map of installed plugin statuses (typed)
+      const installedMap = new Map<string, InstalledPluginInfo>(
+        installedData.plugins.map((p: InstalledPluginInfo) => [p.PluginID, p])
       )
 
       // Merge data
@@ -59,7 +66,7 @@ export default function PluginManagerPage() {
         return {
           ...plugin,
           isInstalled: !!installedInfo,
-          isEnabled: installedInfo?.IsEnabled || false
+          isEnabled: installedInfo?.IsEnabled ?? false
         }
       })
 

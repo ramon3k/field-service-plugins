@@ -173,7 +173,7 @@ export default function TicketTimeClock({ ticketId, technicianId, companyCode, o
         body: JSON.stringify({
           technicianId: userId,
           ticketId: ticketId,
-          entryId: currentEntry.id
+          entryId: currentEntry.EntryID
         })
       })
 
