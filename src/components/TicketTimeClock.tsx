@@ -18,6 +18,14 @@ interface TimeClockStatus {
   lastEntry?: TimeClockEntry;
 }
 
+interface TicketTimeSummary {
+  technicianId: string;
+  technicianName: string;
+  sessionCount: number;
+  totalHours: number;
+  isCurrentlyClocked: boolean;
+}
+
 interface TicketTimeClockProps {
   ticketId: string;
   technicianId?: string;
@@ -32,6 +40,7 @@ const TicketTimeClock: React.FC<TicketTimeClockProps> = ({
   onTimeUpdate 
 }) => {
   const [status, setStatus] = useState<TimeClockStatus | null>(null);
+  const [summary, setSummary] = useState<TicketTimeSummary[]>([]);
   const [technicianId, setTechnicianId] = useState(propTechnicianId || '');
   const [technicianName, setTechnicianName] = useState(propTechnicianName || '');
   const [loading, setLoading] = useState(false);
@@ -56,6 +65,7 @@ const TicketTimeClock: React.FC<TicketTimeClockProps> = ({
   useEffect(() => {
     if (technicianId && ticketId) {
       fetchStatus();
+      fetchTicketSummary();
     }
   }, [technicianId, ticketId]);
 
@@ -77,6 +87,20 @@ const TicketTimeClock: React.FC<TicketTimeClockProps> = ({
       setError(err instanceof Error ? err.message : 'Failed to fetch status');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTicketSummary = async () => {
+    if (!ticketId) return;
+    
+    try {
+      const response = await fetch(`${API_BASE}/plugins/time-clock/ticket-summary/${ticketId}`);
+      if (!response.ok) throw new Error('Failed to fetch ticket summary');
+      const data = await response.json();
+      setSummary(data.summary || []);
+    } catch (err) {
+      console.warn('Failed to fetch ticket summary:', err);
+      // Don't set error state for summary - it's not critical
     }
   };
 
@@ -106,6 +130,7 @@ const TicketTimeClock: React.FC<TicketTimeClockProps> = ({
       }
 
       await fetchStatus();
+      await fetchTicketSummary();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to clock in');
     } finally {
@@ -123,7 +148,10 @@ const TicketTimeClock: React.FC<TicketTimeClockProps> = ({
       const response = await fetch(`${API_BASE}/plugins/time-clock/clock-out`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ technicianId })
+        body: JSON.stringify({ 
+          technicianId,
+          ticketId 
+        })
       });
 
       if (!response.ok) {
@@ -137,6 +165,7 @@ const TicketTimeClock: React.FC<TicketTimeClockProps> = ({
       }
 
       await fetchStatus();
+      await fetchTicketSummary();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to clock out');
     } finally {
@@ -237,6 +266,32 @@ const TicketTimeClock: React.FC<TicketTimeClockProps> = ({
           </button>
         )}
       </div>
+
+      {summary.length > 0 && (
+        <div className="ticket-time-summary">
+          <h4>📊 Ticket Time Summary</h4>
+          <div className="summary-list">
+            {summary.map((item) => (
+              <div key={item.technicianId} className="summary-item">
+                <div className="summary-name">
+                  {item.technicianName}
+                  {item.isCurrentlyClocked && <span className="active-badge">🟢 Active</span>}
+                </div>
+                <div className="summary-stats">
+                  <span className="summary-hours">{formatDuration(item.totalHours)}</span>
+                  <span className="summary-sessions">({item.sessionCount} session{item.sessionCount !== 1 ? 's' : ''})</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="summary-total">
+            <strong>Total Time on Ticket:</strong>{' '}
+            <span className="total-hours">
+              {formatDuration(summary.reduce((sum, item) => sum + item.totalHours, 0))}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

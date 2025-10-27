@@ -286,6 +286,44 @@ class PluginManager {
       await this.loadPlugin(pluginMeta.recordset[0], companyCode);
     }
   }
+
+  /**
+   * Get report components from all loaded plugins
+   */
+  getReportComponents() {
+    const components = [];
+    
+    for (const [pluginId, plugin] of this.loadedPlugins.entries()) {
+      if (plugin.reportComponent) {
+        components.push({
+          pluginId: pluginId,
+          ...plugin.reportComponent
+        });
+      }
+    }
+    
+    return components;
+  }
+
+  /**
+   * Get ticket tabs from all loaded plugins
+   */
+  getTicketTabs() {
+    const tabs = [];
+    
+    for (const [pluginId, plugin] of this.loadedPlugins.entries()) {
+      if (plugin.ticketTabs && Array.isArray(plugin.ticketTabs)) {
+        for (const tab of plugin.ticketTabs) {
+          tabs.push({
+            pluginId: pluginId,
+            ...tab
+          });
+        }
+      }
+    }
+    
+    return tabs;
+  }
 }
 
 module.exports = PluginManager;

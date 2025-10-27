@@ -9,6 +9,7 @@ import ClosedTicketsPage from './components/ClosedTicketsPage'
 import UserManagementPage from './components/UserManagementPage'
 import ActivityLogPage from './components/ActivityLogPage'
 import { CompanyManagementPage } from './components/CompanyManagementPage'
+import PluginManagerPage from './components/PluginManagerPage'
 import Nav from './components/Nav'
 import CustomersPage from './components/CustomersPage'
 import SitesPage from './components/SitesPage'
@@ -40,7 +41,7 @@ export default function App() {
   const [editTicket, setEditTicket] = useState<Ticket|undefined>(undefined)
   const [isNewTicket, setIsNewTicket] = useState(false)
   const [error, setError] = useState<string|undefined>(undefined)
-  const [tab, setTab] = useState<'Tickets'|'Map'|'Calendar'|'Reports'|'Closed'|'Users'|'Companies'|'Activity'|'Customers'|'Sites'|'Licenses'|'Vendors'|'Requests'>('Tickets')
+  const [tab, setTab] = useState<'Tickets'|'Map'|'Calendar'|'Reports'|'Closed'|'Users'|'Companies'|'Activity'|'Customers'|'Sites'|'Licenses'|'Vendors'|'Requests'|'Plugins'>('Tickets')
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
   const [currentTenant, setCurrentTenant] = useState<TenantInfo | null>(null)
   const [companyDisplayName, setCompanyDisplayName] = useState<string>('DCPSP Field Service') // Dynamic company branding
@@ -495,6 +496,7 @@ export default function App() {
           )}
           {tab==='Users' && <UserManagementPage currentUser={currentUser} />}
           {tab==='Companies' && <CompanyManagementPage />}
+          {tab==='Plugins' && <PluginManagerPage />}
           {tab==='Activity' && <ActivityLogPage />}
           {tab==='Customers' && <CustomersPage />}
           {tab==='Sites' && <SitesPage />}

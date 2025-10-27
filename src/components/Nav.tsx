@@ -74,7 +74,7 @@ export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCou
     
     if (currentUser.role === 'SystemAdmin') {
       // SystemAdmin can see everything including Companies management (multi-tenant super admin)
-      return ['Tickets','Map','Calendar','Reports','Closed','Requests','Users','Companies','Activity','Customers','Sites','Licenses','Vendors']
+      return ['Tickets','Map','Calendar','Reports','Closed','Requests','Users','Companies','Plugins','Activity','Customers','Sites','Licenses','Vendors']
     } else if (currentUser.role === 'Admin') {
       // Company Admin can see everything except Companies management
       return ['Tickets','Map','Calendar','Reports','Closed','Requests','Users','Activity','Customers','Sites','Licenses','Vendors']

@@ -3,6 +3,23 @@
 
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const AdmZip = require('adm-zip');
+const fs = require('fs');
+const path = require('path');
+
+// Configure multer for file uploads
+const upload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only .zip files are allowed'));
+    }
+  }
+});
 
 /**
  * Initialize plugin routes with plugin manager instance
@@ -243,6 +260,125 @@ function initializePluginRoutes(app, pluginManager, pool) {
   });
 
   // =============================================
+  // POST /api/plugins/upload
+  // Upload and register a new plugin from a .zip file
+  // =============================================
+  router.post('/upload', upload.single('plugin'), async (req, res) => {
+    let tempDir = null;
+    
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      console.log('📦 Plugin upload received:', req.file.originalname);
+
+      // Extract ZIP file
+      const zip = new AdmZip(req.file.path);
+      tempDir = path.join('uploads', `temp-${Date.now()}`);
+      zip.extractAllTo(tempDir, true);
+
+      // Read plugin.json
+      const pluginJsonPath = path.join(tempDir, 'plugin.json');
+      if (!fs.existsSync(pluginJsonPath)) {
+        throw new Error('plugin.json not found in ZIP file');
+      }
+
+      const pluginJson = JSON.parse(fs.readFileSync(pluginJsonPath, 'utf8'));
+
+      // Validate required fields
+      const required = ['name', 'displayName', 'version', 'description'];
+      for (const field of required) {
+        if (!pluginJson[field]) {
+          throw new Error(`Missing required field in plugin.json: ${field}`);
+        }
+      }
+
+      // Check if plugin name already exists
+      const existingPlugin = await pool.request()
+        .input('name', pluginJson.name)
+        .query('SELECT id FROM GlobalPlugins WHERE name = @name');
+
+      if (existingPlugin.recordset.length > 0) {
+        throw new Error(`Plugin with name '${pluginJson.name}' already exists`);
+      }
+
+      // Validate index.js exists
+      const indexPath = path.join(tempDir, 'index.js');
+      if (!fs.existsSync(indexPath)) {
+        throw new Error('index.js not found in ZIP file');
+      }
+
+      // Insert into GlobalPlugins
+      const result = await pool.request()
+        .input('name', pluginJson.name)
+        .input('displayName', pluginJson.displayName)
+        .input('version', pluginJson.version)
+        .input('description', pluginJson.description)
+        .input('author', pluginJson.author || 'Unknown')
+        .input('category', pluginJson.category || 'general')
+        .input('status', 'active')
+        .input('isOfficial', pluginJson.isOfficial || false)
+        .query(`
+          INSERT INTO GlobalPlugins (name, displayName, version, description, author, category, status, isOfficial)
+          OUTPUT INSERTED.id, INSERTED.name, INSERTED.displayName, INSERTED.version
+          VALUES (@name, @displayName, @version, @description, @author, @category, @status, @isOfficial)
+        `);
+
+      const newPlugin = result.recordset[0];
+      console.log('✅ Plugin registered in database:', newPlugin);
+
+      // Copy plugin files to server/plugins/{name}/
+      const pluginDir = path.join(__dirname, '..', 'plugins', pluginJson.name);
+      
+      // Remove existing plugin directory if it exists
+      if (fs.existsSync(pluginDir)) {
+        fs.rmSync(pluginDir, { recursive: true, force: true });
+      }
+
+      // Create plugin directory
+      fs.mkdirSync(pluginDir, { recursive: true });
+
+      // Copy all files from temp directory to plugin directory
+      const files = fs.readdirSync(tempDir);
+      files.forEach(file => {
+        const srcPath = path.join(tempDir, file);
+        const destPath = path.join(pluginDir, file);
+        fs.copyFileSync(srcPath, destPath);
+      });
+
+      console.log('✅ Plugin files copied to:', pluginDir);
+
+      // Clean up temp files
+      fs.rmSync(req.file.path, { force: true });
+      fs.rmSync(tempDir, { recursive: true, force: true });
+
+      res.json({
+        success: true,
+        message: 'Plugin uploaded and registered successfully',
+        plugin: newPlugin,
+        note: 'Restart the server to load the new plugin'
+      });
+
+    } catch (error) {
+      console.error('❌ Error uploading plugin:', error);
+      
+      // Clean up temp files on error
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.rmSync(req.file.path, { force: true });
+      }
+      if (tempDir && fs.existsSync(tempDir)) {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+
+      res.status(500).json({
+        error: error.message || 'Failed to upload plugin',
+        details: error.toString()
+      });
+    }
+  });
+
+  // =============================================
   // POST /api/plugins/:pluginId/disable
   // Disable a plugin
   // =============================================
@@ -307,6 +443,42 @@ function initializePluginRoutes(app, pluginManager, pool) {
     } catch (error) {
       console.error('Error configuring plugin:', error);
       res.status(500).json({ error: 'Failed to configure plugin' });
+    }
+  });
+
+  // =============================================
+  // GET /api/plugins/report-components
+  // Get available plugin report components
+  // =============================================
+  router.get('/report-components', async (req, res) => {
+    try {
+      if (!pluginManager) {
+        return res.json({ components: [] });
+      }
+
+      const components = pluginManager.getReportComponents();
+      res.json({ components });
+    } catch (error) {
+      console.error('Error fetching report components:', error);
+      res.status(500).json({ error: 'Failed to fetch report components' });
+    }
+  });
+
+  // =============================================
+  // GET /api/plugins/ticket-tabs
+  // Get available plugin ticket tabs
+  // =============================================
+  router.get('/ticket-tabs', async (req, res) => {
+    try {
+      if (!pluginManager) {
+        return res.json({ tabs: [] });
+      }
+
+      const tabs = pluginManager.getTicketTabs();
+      res.json({ tabs });
+    } catch (error) {
+      console.error('Error fetching ticket tabs:', error);
+      res.status(500).json({ error: 'Failed to fetch ticket tabs' });
     }
   });
 

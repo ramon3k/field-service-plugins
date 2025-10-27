@@ -1,9 +1,16 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Ticket, Site } from '../types'
 
 interface ReportsPageProps {
   tickets: Ticket[]
   sites: Site[]
+}
+
+interface PluginReportComponent {
+  pluginId: string;
+  name: string;
+  componentId: string;
+  title: string;
 }
 
 interface MetricCard {
@@ -258,6 +265,36 @@ function TopSitesTable({ tickets }: { tickets: Ticket[] }) {
 
 export default function ReportsPage({ tickets, sites }: ReportsPageProps) {
   const [timeFilter, setTimeFilter] = useState('all')
+  const [pluginReports, setPluginReports] = useState<PluginReportComponent[]>([])
+
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+
+  // Fetch available plugin report components
+  useEffect(() => {
+    fetchPluginReports()
+  }, [])
+
+  const fetchPluginReports = async () => {
+    try {
+      console.log('🔍 Fetching plugin reports from:', `${API_BASE}/plugins/report-components`)
+      const response = await fetch(`${API_BASE}/plugins/report-components`)
+      console.log('📡 Response status:', response.status)
+      if (response.ok) {
+        const data = await response.json()
+        console.log('📊 Plugin reports data:', data)
+        setPluginReports(data.components || [])
+      } else {
+        console.error('❌ Failed to fetch plugin reports:', response.statusText)
+      }
+    } catch (err) {
+      console.warn('Failed to fetch plugin reports:', err)
+    }
+  }
+
+  // Map of available plugin report components
+  const pluginComponents: Record<string, React.ComponentType<any>> = {
+    // Plugin reports will be dynamically added here
+  }
 
   const filteredTickets = useMemo(() => {
     if (timeFilter === 'all') return tickets
@@ -373,6 +410,20 @@ export default function ReportsPage({ tickets, sites }: ReportsPageProps) {
         <PriorityChart tickets={filteredTickets} />
         <StatusChart tickets={filteredTickets} />
       </div>
+
+      {/* Plugin Reports */}
+      {pluginReports.map(report => {
+        console.log('🔌 Rendering plugin report:', report)
+        const Component = pluginComponents[report.componentId]
+        console.log('📦 Component found:', !!Component, 'for', report.componentId)
+        if (!Component) return null
+        
+        return (
+          <div key={report.pluginId}>
+            <Component timeFilter={timeFilter} />
+          </div>
+        )
+      })}
 
       {/* Sites Table */}
       <TopSitesTable tickets={filteredTickets} />

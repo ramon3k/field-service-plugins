@@ -6,7 +6,6 @@ import DatePicker from './DatePicker'
 import PrintableServiceTicket from './PrintableServiceTicket'
 import AttachmentUpload from './AttachmentUpload'
 import AttachmentList from './AttachmentList'
-import TicketTimeClock from './TicketTimeClock'
 import type { Ticket, AuditEntry, CoordinatorNote, User } from '../types'
 
 function sanitizeTicket(ticket: Ticket): Ticket {
@@ -61,7 +60,7 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
   const [editedTicket, setEditedTicket] = useState<Ticket>(() => sanitizeTicket(ticket))
   const [loading, setLoading] = useState(false)
   const [newNote, setNewNote] = useState('')
-  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'history' | 'attachments' | 'timeclock'>('details')
+  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'history' | 'attachments'>('details')
   const [customers, setCustomers] = useState<string[]>([])
   const [allSites, setAllSites] = useState<any[]>([])
   const [filteredSites, setFilteredSites] = useState<string[]>([])
@@ -344,7 +343,7 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
           borderBottom: '1px solid #e5e7eb',
           backgroundColor: '#f9fafb'
         }}>
-          {(['details', 'notes', 'attachments', 'timeclock', 'history'] as const).map(tab => (
+          {(['details', 'notes', 'attachments', 'history'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -829,14 +828,6 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
               ) : (
                 <p style={{ color: '#4a5568', fontStyle: 'italic' }}>No audit trail entries yet</p>
               )}
-            </div>
-          )}
-
-          {activeTab === 'timeclock' && (
-            <div>
-              <TicketTimeClock 
-                ticketId={ticket.TicketID}
-              />
             </div>
           )}
 

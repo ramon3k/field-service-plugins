@@ -1,8 +1,17 @@
 // src/components/TechnicianInterface.tsx
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import type { Ticket, AuthUser } from '../types'
 import { authService } from '../services/AuthService'
 import AttachmentUpload from './AttachmentUpload'
+
+interface PluginTab {
+  id: string
+  label: string
+  icon: string
+  componentId: string
+  pluginId: string
+  roles: string[]
+}
 
 type Props = {
   tickets: Ticket[]
@@ -394,7 +403,26 @@ function TechnicianEditModal({ ticket, currentUser, onClose, onSave }: {
   const [editedTicket, setEditedTicket] = useState<Ticket>(ticket)
   const [loading, setLoading] = useState(false)
   const [newNote, setNewNote] = useState('')
-  const [activeTab, setActiveTab] = useState<'status' | 'notes' | 'attachments'>('status')
+  const [activeTab, setActiveTab] = useState<'status' | 'notes' | 'attachments' | 'timeclock'>('status')
+  const [pluginTabs, setPluginTabs] = useState<PluginTab[]>([])
+
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+
+  // Fetch plugin tabs on mount
+  useEffect(() => {
+    const fetchPluginTabs = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/plugins/ticket-tabs`)
+        if (response.ok) {
+          const data = await response.json()
+          setPluginTabs(data.tabs || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch plugin tabs:', error)
+      }
+    }
+    fetchPluginTabs()
+  }, [])
 
   const handleFieldChange = (field: keyof Ticket, value: string) => {
     setEditedTicket(prev => ({
@@ -558,6 +586,24 @@ function TechnicianEditModal({ ticket, currentUser, onClose, onSave }: {
           >
             📎 Photos/Documents
           </button>
+          {/* Plugin tabs */}
+          {pluginTabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              style={{
+                background: activeTab === tab.id ? '#17263f' : 'transparent',
+                border: 'none',
+                color: activeTab === tab.id ? '#ffffff' : '#8892b0',
+                padding: '12px 20px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Content */}
@@ -744,6 +790,18 @@ function TechnicianEditModal({ ticket, currentUser, onClose, onSave }: {
               />
             </div>
           )}
+
+          {/* Render plugin tab content */}
+          {pluginTabs.map(tab => {
+            if (activeTab !== tab.id) return null
+            
+            // Plugin tabs will render when components are dynamically loaded
+            return (
+              <div key={tab.id}>
+                <p>Plugin component "{tab.componentId}" not loaded</p>
+              </div>
+            )
+          })}
         </div>
 
         {/* Footer */}

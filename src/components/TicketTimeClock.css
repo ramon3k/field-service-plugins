@@ -158,3 +158,82 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Ticket Time Summary */
+.ticket-time-summary {
+  background: white;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.ticket-time-summary h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: #2d3748;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f7fafc;
+  border-radius: 4px;
+  border-left: 3px solid #3b82f6;
+}
+
+.summary-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.active-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.summary-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summary-hours {
+  color: #3b82f6;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.summary-sessions {
+  color: #718096;
+  font-size: 0.875rem;
+}
+
+.summary-total {
+  padding-top: 1rem;
+  border-top: 2px solid #e2e8f0;
+  text-align: right;
+  font-size: 1rem;
+  color: #1a202c;
+}
+
+.total-hours {
+  color: #3b82f6;
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-left: 0.5rem;
+}
