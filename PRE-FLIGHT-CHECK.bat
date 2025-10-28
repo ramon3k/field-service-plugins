@@ -1,4 +1,8 @@
 @echo off
+
+REM CRITICAL: Change to the script's directory FIRST
+cd /d "%~dp0"
+
 setlocal EnableDelayedExpansion
 cls
 

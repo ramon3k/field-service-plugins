@@ -1,8 +1,13 @@
 @echo off
 
+REM CRITICAL: Change to the script's directory FIRST
+REM This fixes the issue where "Run as administrator" changes the working directory
+cd /d "%~dp0"
+
 REM Write debug log immediately - BEFORE setlocal
 echo SETUP.bat started at %date% %time% > setup-debug.log
 echo Running from: %~dp0 >> setup-debug.log
+echo Current directory: %cd% >> setup-debug.log
 echo About to set EnableDelayedExpansion >> setup-debug.log
 
 setlocal EnableDelayedExpansion
