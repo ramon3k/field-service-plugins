@@ -166,14 +166,21 @@ echo.
 
 echo After Step 1 header >> setup-debug.log
 
+echo About to check Windows version >> setup-debug.log
+
 REM Check Windows version
 for /f "tokens=4-5 delims=. " %%i in ('ver') do set VERSION=%%i.%%j
-echo Windows Version: %VERSION%
+echo Windows version checked >> setup-debug.log
+echo Windows Version: !VERSION!
 echo [OK] Windows version check passed >> "%LOG_FILE%"
+
+echo About to check disk space >> setup-debug.log
 
 REM Check available disk space (at least 5GB free)
 echo Checking disk space...
 for /f "tokens=3" %%a in ('dir /-c "%INSTALL_DIR%" 2^>nul ^| find "bytes free"') do set FREESPACE=%%a
+
+echo Disk space check completed >> setup-debug.log
 
 REM Handle OneDrive paths or calculation errors
 if not defined FREESPACE (
