@@ -1,15 +1,23 @@
 @echo off
-setlocal EnableDelayedExpansion
 
-REM Write debug log immediately
+REM Write debug log immediately - BEFORE setlocal
 echo SETUP.bat started at %date% %time% > setup-debug.log
 echo Running from: %~dp0 >> setup-debug.log
+echo About to set EnableDelayedExpansion >> setup-debug.log
+
+setlocal EnableDelayedExpansion
+
+echo DelayedExpansion enabled >> setup-debug.log
 
 cls
+
+echo After cls >> setup-debug.log
 
 REM Field Service Management System Installer
 REM Version 2.0
 REM Automated installation script for Windows
+
+echo About to show header >> setup-debug.log
 
 echo.
 echo ========================================
@@ -26,11 +34,12 @@ echo  - Interactive configuration wizard
 echo ========================================
 echo.
 
+echo Header shown >> setup-debug.log
 echo Checking privileges... >> setup-debug.log
 
 REM Check if running as Administrator
 net session >nul 2>&1
-if %errorLevel% neq 0 (
+if !errorLevel! neq 0 (
     echo Not admin! >> setup-debug.log
     echo ERROR: This installer must be run as Administrator.
     echo.
@@ -165,7 +174,7 @@ REM Check if SQL Server is already installed
 echo.
 echo Checking for SQL Server Express...
 sc query "MSSQL$SQLEXPRESS" >nul 2>&1
-if %errorLevel% equ 0 (
+if !errorLevel! equ 0 (
     echo [OK] SQL Server Express already installed
     set "SQL_INSTALLED=true"
 ) else (
@@ -177,7 +186,7 @@ REM Check if Node.js is installed
 echo.
 echo Checking for Node.js...
 node --version >nul 2>&1
-if %errorLevel% equ 0 (
+if !errorLevel! equ 0 (
     for /f "tokens=*" %%i in ('node --version') do set "NODE_VERSION=%%i"
     echo [OK] Node.js already installed: !NODE_VERSION!
     set "NODE_INSTALLED=true"
