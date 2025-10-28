@@ -2,8 +2,8 @@
 
 **A comprehensive, modern field service management solution with extensible plugin architecture.**
 
-Version: 2.0.0  
-Last Updated: October 27, 2025
+Version: 2.1.3  
+Last Updated: October 28, 2025
 
 ---
 
@@ -37,16 +37,22 @@ Last Updated: October 27, 2025
 
 ## 📋 Quick Start
 
-### Prerequisites
+### Installation Options
+
+- 🪟 **Windows Local Installation**: See [LOCAL-INSTALL.md](LOCAL-INSTALL.md) for a complete guide using the Windows installer (SETUP.bat)
+- ☁️ **Azure Deployment**: See [AZURE-DEPLOYMENT-GUIDE.md](AZURE-DEPLOYMENT-GUIDE.md) for cloud deployment
+- 👨‍💻 **Development Setup**: Follow the instructions below
+
+### Development Prerequisites
 - Node.js 16+ installed
 - SQL Server Express or SQL Server
 - Windows (for SQL Server Windows Authentication)
 
-### Installation
+### Development Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/ramon3k/field-service-plugins.git
    cd field-service-plugins
    ```
 
@@ -82,7 +88,6 @@ Last Updated: October 27, 2025
    
    **Backend (API):**
    ```bash
-   cd server
    node api.cjs
    ```
 
@@ -374,14 +379,27 @@ are not considered derivative works and may be licensed independently. See
 
 ---
 
+## 📄 License
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** with a **Plugin Exception**.
+
+- **Main Application**: AGPL-3.0 (see [LICENSE.txt](LICENSE.txt))
+- **Plugin Exception**: Plugins can be distributed under any license without requiring the plugin code to be AGPL-3.0
+- **Time Clock Plugin**: MIT License (example plugin included for learning)
+
+See [SECURITY.md](SECURITY.md) for more details on licensing and security practices.
+
+---
+
 ## 🤝 Contributing
 
-This is a proprietary field service management system. For plugin development:
+This project welcomes plugin development:
 
 1. Use the plugin template in `plugin-templates/basic-plugin/`
 2. Follow the [Plugin Development Guide](docs/PLUGIN-DEVELOPMENT-GUIDE.md)
-3. Test thoroughly before distribution
-4. Document your plugin with a detailed README
+3. Plugins can be distributed under your choice of license (MIT, Apache, proprietary, etc.)
+4. Test thoroughly before distribution
+5. Document your plugin with a detailed README
 
 ---
 
