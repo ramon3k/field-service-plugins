@@ -344,12 +344,40 @@ echo SQL needs to be installed >> setup-debug.log
     echo.
     echo SQL installation started at: %TIME% >> setup-debug.log
     
+    REM Create extraction directory
+    set "SQL_EXTRACT_DIR=%INSTALL_DIR%installers\SQLServerSetup"
+    if not exist "!SQL_EXTRACT_DIR!" mkdir "!SQL_EXTRACT_DIR!"
+    
+    echo Extracting SQL Server installer...
+    echo Extraction started >> setup-debug.log
+    
+    REM First extract the installer files
+    "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /x:"!SQL_EXTRACT_DIR!" /q
+    
+    REM Wait a moment for extraction to complete
+    timeout /t 5 /nobreak >nul
+    
+    echo Extraction completed, checking for setup.exe >> setup-debug.log
+    
+    REM Verify extraction succeeded
+    if not exist "!SQL_EXTRACT_DIR!\setup.exe" (
+        echo [ERROR] SQL Server extraction failed
+        echo Extraction verification failed >> setup-debug.log
+        echo Please try running the installer manually.
+        pause
+        exit /b 1
+    )
+    
+    echo [OK] Extraction completed
+    echo Running SQL Server setup...
+    echo.
+    
     REM Create a temp folder for SQL setup logs
     set "SQL_LOG_DIR=%TEMP%\SQLServerSetup"
     if not exist "!SQL_LOG_DIR!" mkdir "!SQL_LOG_DIR!"
     
-    REM Run SQL installation with better error handling and logging
-    "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="!SQL_SA_PASSWORD!" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /UPDATEENABLED=False /UpdateSource=MU /INDICATEPROGRESS
+    REM Run the actual setup from extracted files
+    "!SQL_EXTRACT_DIR!\setup.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="!SQL_SA_PASSWORD!" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /UPDATEENABLED=False /UpdateSource=MU
     
     set SQL_EXIT_CODE=!errorLevel!
     echo SQL installation finished at: %TIME% with exit code: !SQL_EXIT_CODE! >> setup-debug.log
@@ -357,6 +385,10 @@ echo SQL needs to be installed >> setup-debug.log
     if !SQL_EXIT_CODE! equ 0 (
         echo [OK] SQL Server Express installed successfully
         echo [OK] SQL Server Express installation completed >> "!LOG_FILE!"
+        
+        REM Clean up extracted files to save space
+        echo Cleaning up extracted files...
+        rd /s /q "!SQL_EXTRACT_DIR!" 2>nul
     ) else (
         echo.
         echo ============================================
@@ -386,7 +418,8 @@ echo SQL needs to be installed >> setup-debug.log
         echo 3. Run Windows Update and install all updates
         echo.
         echo 4. Try manual installation:
-        echo    - Run: %INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe
+        echo    - Extracted files are at: !SQL_EXTRACT_DIR!
+        echo    - Run: !SQL_EXTRACT_DIR!\setup.exe
         echo    - Follow the GUI wizard
         echo.
         echo Check the log file for details: !LOG_FILE!
