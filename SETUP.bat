@@ -162,29 +162,89 @@ echo.
 if "%SQL_INSTALLED%"=="false" (
     echo Installing SQL Server Express 2019...
     echo This may take 10-15 minutes. Please wait...
+    echo.
     
+    :: Check if installer exists locally
     if exist "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" (
+        echo [√] Found SQL Server installer in installers folder
+        goto :install_sql
+    )
+    
+    :: Try to download if not found
+    echo [!] SQL Server installer not found locally
+    echo [!] Attempting to download (270 MB)...
+    echo [!] This may take several minutes depending on your connection...
+    echo.
+    
+    powershell -ExecutionPolicy Bypass -Command "try { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri 'https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLEXPR_x64_ENU.exe' -OutFile '%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe' -UseBasicParsing; exit 0 } catch { Write-Host 'Download failed:' $_.Exception.Message; exit 1 }" 2>&1
+    
+    if !errorLevel! neq 0 (
+        echo.
+        echo ============================================
+        echo  DOWNLOAD FAILED
+        echo ============================================
+        echo.
+        echo The SQL Server installer could not be downloaded automatically.
+        echo This might be due to:
+        echo  - No internet connection
+        echo  - Firewall blocking downloads
+        echo  - Network restrictions
+        echo.
+        echo SOLUTION: Manual Download Required
+        echo ----------------------------------------
+        echo 1. Download SQL Server Express 2019 from:
+        echo    https://go.microsoft.com/fwlink/?linkid=866658
+        echo.
+        echo 2. Save the file as: SQLEXPR_x64_ENU.exe
+        echo.
+        echo 3. Place it in: %INSTALL_DIR%installers\
+        echo.
+        echo 4. Run SETUP.bat again
+        echo.
+        echo Press any key to exit...
+        pause >nul
+        exit /b 1
+    )
+    
+    :: Verify download succeeded
+    if not exist "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" (
+        echo [X] Download verification failed - file not created
+        echo Please download manually and run SETUP.bat again
+        pause
+        exit /b 1
+    )
+    
+    echo [√] Download completed successfully
+    echo.
+    
+    :install_sql
+    echo Installing SQL Server Express...
+    echo (This runs silently - please wait 10-15 minutes)
+    echo.
+    
     "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="%SQL_SA_PASSWORD%" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic
-        if !errorLevel! equ 0 (
-            echo [√] SQL Server Express installed successfully
-            echo [√] SQL Server Express installation completed >> "%LOG_FILE%"
-        ) else (
-            echo [X] SQL Server Express installation failed
-            echo ERROR: SQL Server installation failed >> "%LOG_FILE%"
-            pause
-            exit /b 1
-        )
+    
+    if !errorLevel! equ 0 (
+        echo [√] SQL Server Express installed successfully
+        echo [√] SQL Server Express installation completed >> "%LOG_FILE%"
     ) else (
-        echo [!] SQL Server installer not found. Downloading...
-        powershell -Command "Invoke-WebRequest -Uri 'https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLEXPR_x64_ENU.exe' -OutFile '%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe'"
-        if exist "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" (
-            "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="%SQL_SA_PASSWORD%" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic
-        ) else (
-            echo ERROR: Could not download SQL Server Express
-            echo Please download manually and place in installers\ folder
-            pause
-            exit /b 1
-        )
+        echo.
+        echo ============================================
+        echo  SQL SERVER INSTALLATION FAILED
+        echo ============================================
+        echo.
+        echo Error code: !errorLevel!
+        echo.
+        echo Common causes:
+        echo  - SQL Server already installed with different instance name
+        echo  - Insufficient permissions
+        echo  - Conflicting SQL Server version
+        echo.
+        echo Check the log file for details: %LOG_FILE%
+        echo.
+        echo Press any key to exit...
+        pause >nul
+        exit /b 1
     )
 ) else (
     echo [√] Using existing SQL Server Express installation
@@ -194,33 +254,88 @@ if "%SQL_INSTALLED%"=="false" (
 if "%NODE_INSTALLED%"=="false" (
     echo.
     echo Installing Node.js LTS...
+    echo.
     
+    :: Check if installer exists locally
     if exist "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" (
-        msiexec /i "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" /quiet /norestart
-        if !errorLevel! equ 0 (
-            echo [√] Node.js installed successfully
-            echo [√] Node.js installation completed >> "%LOG_FILE%"
-        ) else (
-            echo [X] Node.js installation failed
-            echo ERROR: Node.js installation failed >> "%LOG_FILE%"
-            pause
-            exit /b 1
-        )
+        echo [√] Found Node.js installer in installers folder
+        goto :install_node
+    )
+    
+    :: Try to download if not found
+    echo [!] Node.js installer not found locally
+    echo [!] Attempting to download (28 MB)...
+    echo.
+    
+    powershell -ExecutionPolicy Bypass -Command "try { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri 'https://nodejs.org/dist/v18.18.0/node-v18.18.0-x64.msi' -OutFile '%INSTALL_DIR%installers\node-v18.18.0-x64.msi' -UseBasicParsing; exit 0 } catch { Write-Host 'Download failed:' $_.Exception.Message; exit 1 }" 2>&1
+    
+    if !errorLevel! neq 0 (
+        echo.
+        echo ============================================
+        echo  DOWNLOAD FAILED
+        echo ============================================
+        echo.
+        echo The Node.js installer could not be downloaded automatically.
+        echo.
+        echo SOLUTION: Manual Download Required
+        echo ----------------------------------------
+        echo 1. Download Node.js LTS from:
+        echo    https://nodejs.org/dist/v18.18.0/node-v18.18.0-x64.msi
+        echo.
+        echo 2. Save it in: %INSTALL_DIR%installers\
+        echo.
+        echo 3. Run SETUP.bat again
+        echo.
+        echo Press any key to exit...
+        pause >nul
+        exit /b 1
+    )
+    
+    :: Verify download succeeded
+    if not exist "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" (
+        echo [X] Download verification failed - file not created
+        echo Please download manually and run SETUP.bat again
+        pause
+        exit /b 1
+    )
+    
+    echo [√] Download completed successfully
+    echo.
+    
+    :install_node
+    echo Installing Node.js...
+    echo.
+    
+    msiexec /i "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" /quiet /norestart
+    
+    if !errorLevel! equ 0 (
+        echo [√] Node.js installed successfully
+        echo [√] Node.js installation completed >> "%LOG_FILE%"
     ) else (
-        echo [!] Node.js installer not found. Downloading...
-        powershell -Command "Invoke-WebRequest -Uri 'https://nodejs.org/dist/v18.18.0/node-v18.18.0-x64.msi' -OutFile '%INSTALL_DIR%installers\node-v18.18.0-x64.msi'"
-        if exist "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" (
-            msiexec /i "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" /quiet /norestart
-        ) else (
-            echo ERROR: Could not download Node.js
-            echo Please download manually and place in installers\ folder
-            pause
-            exit /b 1
-        )
+        echo.
+        echo ============================================
+        echo  NODE.JS INSTALLATION FAILED
+        echo ============================================
+        echo.
+        echo Error code: !errorLevel!
+        echo.
+        echo Common causes:
+        echo  - Node.js already installed
+        echo  - Insufficient permissions
+        echo.
+        echo Check the log file for details: %LOG_FILE%
+        echo.
+        echo Press any key to exit...
+        pause >nul
+        exit /b 1
     )
     
     :: Refresh environment variables
-    call "%INSTALL_DIR%scripts\refresh-env.bat"
+    echo [!] Refreshing environment variables...
+    call "%INSTALL_DIR%scripts\refresh-env.bat" 2>nul
+    if !errorLevel! neq 0 (
+        echo [!] Could not refresh environment - you may need to restart your terminal
+    )
 ) else (
     echo [√] Using existing Node.js installation
 )

@@ -13,6 +13,22 @@ This guide walks you through installing the Field Service Management System on a
 
 ## Quick Start (5 Minutes)
 
+### Pre-Flight Check (Optional but Recommended)
+
+Before installing, verify your system is ready:
+```
+Right-click PRE-FLIGHT-CHECK.bat → Run as administrator
+```
+
+This will check for:
+- Administrator privileges
+- Internet connection (for auto-downloads)
+- Disk space
+- Existing SQL Server / Node.js installations
+- Port availability
+
+### Installation Steps
+
 1. **Download the release**
    - Go to [Releases](https://github.com/ramon3k/field-service-plugins/releases/latest)
    - Download `field-service-plugins-vX.Y.Z.zip`
@@ -22,6 +38,7 @@ This guide walks you through installing the Field Service Management System on a
    - Right-click `SETUP.bat`
    - Select **"Run as administrator"**
    - Follow the prompts
+   - If download fails, the installer will show you exactly what to download and where to put it
 
 3. **Access the application**
    - Open browser to `http://localhost:5000`
@@ -255,6 +272,45 @@ WITH REPLACE;
 
 ## Troubleshooting
 
+### Installer Closes Immediately
+
+**Cause**: Not running as administrator
+- **Solution**: Right-click SETUP.bat and select "Run as administrator"
+
+**Cause**: Missing installers and no internet connection
+- **Solution**: 
+  1. Download SQL Server Express: https://go.microsoft.com/fwlink/?linkid=866658
+  2. Save as `installers\SQLEXPR_x64_ENU.exe`
+  3. Download Node.js: https://nodejs.org/dist/v18.18.0/node-v18.18.0-x64.msi
+  4. Save in `installers\` folder
+  5. Run SETUP.bat again
+
+**Cause**: PowerShell execution policy blocking downloads
+- **Solution**: Run PRE-FLIGHT-CHECK.bat first to identify issues
+
+### "Download Failed" Error
+
+The installer will show you exactly what to download and where to put it. Follow the on-screen instructions.
+
+**Common causes**:
+- No internet connection → Download installers manually
+- Firewall blocking downloads → Temporarily disable or download manually
+- Proxy server → Download installers manually from work computer
+
+### "SQL Server Installation Failed"
+
+**Check if SQL Server is already installed**:
+```powershell
+sc query MSSQL$SQLEXPRESS
+```
+
+If it says "running", SQL Server is already there. Run SETUP.bat again—it will skip the SQL installation.
+
+**If installation truly failed**:
+- Check `install.log` in the installation folder for details
+- Try installing SQL Server manually: https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+- Choose "Express" edition, "Basic" install type
+
 ### "SQL Server not found"
 - Open **Services** (services.msc)
 - Find **SQL Server (SQLEXPRESS)**
@@ -274,14 +330,21 @@ Or run CONFIGURE.bat to change the port.
 3. Ensure Windows Authentication is enabled
 4. Run `enable-sql-tcp.bat` to enable TCP/IP protocol
 
-### "Node.js not found"
-- Download Node.js manually: https://nodejs.org/
-- Install version 18 or later
-- Restart command prompt after installation
+### "Node.js not found" after installation
+- Close and reopen your terminal/command prompt
+- Check: `node --version`
+- If still not found, restart your computer
+- Manually download from: https://nodejs.org/
 
 ### "Permission denied" errors
 - Ensure you ran SETUP.bat **as Administrator**
 - Grant your Windows user account permissions to the installation folder
+
+### Still Having Issues?
+
+1. **Run PRE-FLIGHT-CHECK.bat** to diagnose
+2. **Check install.log** in the application folder
+3. **Try manual installation** of SQL Server and Node.js first, then run SETUP.bat
 
 ---
 
