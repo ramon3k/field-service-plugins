@@ -79,6 +79,8 @@ echo Log file created >> setup-debug.log
 echo Checking for SQL password... >> setup-debug.log
 
 REM Security: Require SQL 'sa' password for fresh SQL Express installs
+REM Use a temporary variable to avoid issues with DelayedExpansion
+set "TEMP_PASSWORD="
 if not defined SQL_SA_PASSWORD (
     echo Before password prompt >> setup-debug.log
     echo.
@@ -93,11 +95,15 @@ if not defined SQL_SA_PASSWORD (
     echo  - At least 8 characters
     echo  - Mix of uppercase, lowercase, numbers
     echo.
-    set /p "SQL_SA_PASSWORD=Enter SQL 'sa' password: "
+    set /p TEMP_PASSWORD=Enter SQL 'sa' password: 
+    set "SQL_SA_PASSWORD=!TEMP_PASSWORD!"
     echo After password prompt >> setup-debug.log
     echo SQL password entered >> setup-debug.log
+) else (
+    echo SQL password already set >> setup-debug.log
 )
 
+echo Password check complete >> setup-debug.log
 echo Reading config... >> setup-debug.log
 
 REM Read configuration from config.json if it exists
