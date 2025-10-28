@@ -182,6 +182,8 @@ for /f "tokens=3" %%a in ('dir /-c "%INSTALL_DIR%" 2^>nul ^| find "bytes free"')
 
 echo Disk space check completed >> setup-debug.log
 
+echo About to handle freespace >> setup-debug.log
+
 REM Handle OneDrive paths or calculation errors
 if not defined FREESPACE (
     echo [OK] Could not determine free space - continuing anyway
@@ -189,25 +191,30 @@ if not defined FREESPACE (
     goto :skip_diskspace
 )
 
-set /a FREESPACE_GB=%FREESPACE:~0,-9% 2>nul
-if errorlevel 1 (
+echo About to calculate freespace GB >> setup-debug.log
+
+set /a FREESPACE_GB=!FREESPACE:~0,-9! 2>nul
+if !errorLevel! neq 0 (
     echo [OK] Could not calculate disk space - continuing anyway
     echo [OK] Disk space calculation failed >> "%LOG_FILE%"
     goto :skip_diskspace
 )
 
-if %FREESPACE_GB% LSS 5 (
-    echo [OK] WARNING: Disk space check shows %FREESPACE_GB%GB free
+echo Freespace calculated: !FREESPACE_GB!GB >> setup-debug.log
+
+if !FREESPACE_GB! LSS 5 (
+    echo [OK] WARNING: Disk space check shows !FREESPACE_GB!GB free
     echo [OK] This may be incorrect for OneDrive paths
     echo.
     choice /C YN /M "Continue anyway"
-    if errorlevel 2 (
+    if !errorLevel! equ 2 (
         exit /b 1
     )
 ) else (
-    echo [OK] Disk space check passed: %FREESPACE_GB%GB available
+    echo [OK] Disk space check passed: !FREESPACE_GB!GB available
 )
 
+echo Disk space section completed >> setup-debug.log
 :skip_diskspace
 
 REM Check if SQL Server is already installed
@@ -242,7 +249,7 @@ echo ============================================
 echo.
 
 REM Install SQL Server Express if needed
-if "%SQL_INSTALLED%"=="false" (
+if "!SQL_INSTALLED!"=="false" (
     echo Installing SQL Server Express 2019...
     echo This may take 10-15 minutes. Please wait...
     echo.
@@ -334,7 +341,7 @@ if "%SQL_INSTALLED%"=="false" (
 )
 
 REM Install Node.js if needed
-if "%NODE_INSTALLED%"=="false" (
+if "!NODE_INSTALLED!"=="false" (
     echo.
     echo Installing Node.js LTS...
     echo.
@@ -529,7 +536,7 @@ timeout /t 10 /nobreak >nul
 
 REM Create database
 echo Creating database with complete schema...
-sqlcmd -S "%DB_SERVER%" -i "%INSTALL_DIR%database\create-database-complete.sql" >nul 2>&1
+sqlcmd -S "!DB_SERVER!" -i "%INSTALL_DIR%database\create-database-complete.sql" >nul 2>&1
 if !errorLevel! equ 0 (
     echo [OK] Database created successfully
     echo [OK] Database creation completed >> "%LOG_FILE%"
@@ -562,7 +569,7 @@ if !errorLevel! equ 0 (
 REM Add CompanyCode support to all tables
 echo.
 echo Adding CompanyCode multi-tenant support...
-sqlcmd -S "%DB_SERVER%" -d %DB_NAME% -i "%INSTALL_DIR%database\add-company-code-support.sql" >nul 2>&1
+sqlcmd -S "!DB_SERVER!" -d !DB_NAME! -i "%INSTALL_DIR%database\add-company-code-support.sql" >nul 2>&1
 if !errorLevel! equ 0 (
     echo [OK] CompanyCode columns added successfully
     echo [OK] CompanyCode support completed >> "%LOG_FILE%"
@@ -575,7 +582,7 @@ REM Create admin user from configuration wizard
 if exist "%INSTALL_DIR%database\create-admin-user.sql" (
     echo.
     echo Creating admin user from configuration...
-    sqlcmd -S "%DB_SERVER%" -d %DB_NAME% -i "%INSTALL_DIR%database\create-admin-user.sql" >nul 2>&1
+    sqlcmd -S "!DB_SERVER!" -d !DB_NAME! -i "%INSTALL_DIR%database\create-admin-user.sql" >nul 2>&1
     if !errorLevel! equ 0 (
         echo [OK] Admin user created successfully
         echo [OK] Admin user creation completed >> "%LOG_FILE%"
@@ -688,7 +695,7 @@ echo.
 echo Installation Summary:
 echo =====================
 echo Application Directory: %INSTALL_DIR%
-echo Database Name: %DB_NAME%
+echo Database Name: !DB_NAME!
 echo Backup Directory: %BACKUP_DIR%
 echo.
 echo Access Points:
