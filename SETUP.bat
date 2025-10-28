@@ -127,7 +127,7 @@ echo.
 REM Check Windows version
 for /f "tokens=4-5 delims=. " %%i in ('ver') do set VERSION=%%i.%%j
 echo Windows Version: %VERSION%
-echo [???] Windows version check passed >> "%LOG_FILE%"
+echo [OK] Windows version check passed >> "%LOG_FILE%"
 
 REM Check available disk space (at least 5GB free)
 echo Checking disk space...
@@ -156,7 +156,7 @@ if %FREESPACE_GB% LSS 5 (
         exit /b 1
     )
 ) else (
-    echo [???] Disk space check passed: %FREESPACE_GB%GB available
+    echo [OK] Disk space check passed: %FREESPACE_GB%GB available
 )
 
 :skip_diskspace
@@ -166,7 +166,7 @@ echo.
 echo Checking for SQL Server Express...
 sc query "MSSQL$SQLEXPRESS" >nul 2>&1
 if %errorLevel% equ 0 (
-    echo [???] SQL Server Express already installed
+    echo [OK] SQL Server Express already installed
     set "SQL_INSTALLED=true"
 ) else (
     echo [OK] SQL Server Express not found - will install
@@ -179,7 +179,7 @@ echo Checking for Node.js...
 node --version >nul 2>&1
 if %errorLevel% equ 0 (
     for /f "tokens=*" %%i in ('node --version') do set "NODE_VERSION=%%i"
-    echo [???] Node.js already installed: !NODE_VERSION!
+    echo [OK] Node.js already installed: !NODE_VERSION!
     set "NODE_INSTALLED=true"
 ) else (
     echo [OK] Node.js not found - will install
@@ -198,13 +198,13 @@ if "%SQL_INSTALLED%"=="false" (
     echo This may take 10-15 minutes. Please wait...
     echo.
     
-    :: Check if installer exists locally
+    REM Check if installer exists locally
     if exist "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" (
-        echo [???] Found SQL Server installer in installers folder
+        echo [OK] Found SQL Server installer in installers folder
         goto :install_sql
     )
     
-    :: Try to download if not found
+    REM Try to download if not found
     echo [OK] SQL Server installer not found locally
     echo [OK] Attempting to download (270 MB)...
     echo [OK] This may take several minutes depending on your connection...
@@ -240,7 +240,7 @@ if "%SQL_INSTALLED%"=="false" (
         exit /b 1
     )
     
-    :: Verify download succeeded
+    REM Verify download succeeded
     if not exist "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" (
         echo [OK] Download verification failed - file not created
         echo Please download manually and run SETUP.bat again
@@ -248,7 +248,7 @@ if "%SQL_INSTALLED%"=="false" (
         exit /b 1
     )
     
-    echo [???] Download completed successfully
+    echo [OK] Download completed successfully
     echo.
     
     :install_sql
@@ -259,8 +259,8 @@ if "%SQL_INSTALLED%"=="false" (
     "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="%SQL_SA_PASSWORD%" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic
     
     if !errorLevel! equ 0 (
-        echo [???] SQL Server Express installed successfully
-        echo [???] SQL Server Express installation completed >> "%LOG_FILE%"
+        echo [OK] SQL Server Express installed successfully
+        echo [OK] SQL Server Express installation completed >> "%LOG_FILE%"
     ) else (
         echo.
         echo ============================================
@@ -281,7 +281,7 @@ if "%SQL_INSTALLED%"=="false" (
         exit /b 1
     )
 ) else (
-    echo [???] Using existing SQL Server Express installation
+    echo [OK] Using existing SQL Server Express installation
 )
 
 REM Install Node.js if needed
@@ -290,13 +290,13 @@ if "%NODE_INSTALLED%"=="false" (
     echo Installing Node.js LTS...
     echo.
     
-    :: Check if installer exists locally
+    REM Check if installer exists locally
     if exist "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" (
-        echo [???] Found Node.js installer in installers folder
+        echo [OK] Found Node.js installer in installers folder
         goto :install_node
     )
     
-    :: Try to download if not found
+    REM Try to download if not found
     echo [OK] Node.js installer not found locally
     echo [OK] Attempting to download (28 MB)...
     echo.
@@ -325,7 +325,7 @@ if "%NODE_INSTALLED%"=="false" (
         exit /b 1
     )
     
-    :: Verify download succeeded
+    REM Verify download succeeded
     if not exist "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" (
         echo [OK] Download verification failed - file not created
         echo Please download manually and run SETUP.bat again
@@ -333,7 +333,7 @@ if "%NODE_INSTALLED%"=="false" (
         exit /b 1
     )
     
-    echo [???] Download completed successfully
+    echo [OK] Download completed successfully
     echo.
     
     :install_node
@@ -343,8 +343,8 @@ if "%NODE_INSTALLED%"=="false" (
     msiexec /i "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" /quiet /norestart
     
     if !errorLevel! equ 0 (
-        echo [???] Node.js installed successfully
-        echo [???] Node.js installation completed >> "%LOG_FILE%"
+        echo [OK] Node.js installed successfully
+        echo [OK] Node.js installation completed >> "%LOG_FILE%"
     ) else (
         echo.
         echo ============================================
@@ -364,14 +364,14 @@ if "%NODE_INSTALLED%"=="false" (
         exit /b 1
     )
     
-    :: Refresh environment variables
+    REM Refresh environment variables
     echo [OK] Refreshing environment variables...
     call "%INSTALL_DIR%scripts\refresh-env.bat" 2>nul
     if !errorLevel! neq 0 (
         echo [OK] Could not refresh environment - you may need to restart your terminal
     )
 ) else (
-    echo [???] Using existing Node.js installation
+    echo [OK] Using existing Node.js installation
 )
 
 echo.
@@ -386,7 +386,7 @@ if exist "%INSTALL_DIR%config.json" (
     echo.
     choice /C YN /M "Do you want to reconfigure the application"
     if errorlevel 2 (
-        echo [???] Using existing configuration
+        echo [OK] Using existing configuration
         goto :skip_config
     )
 )
@@ -405,8 +405,8 @@ pause
 
 call "%INSTALL_DIR%CONFIGURE.bat"
 if !errorLevel! equ 0 (
-    echo [???] Configuration completed successfully
-    echo [???] Configuration wizard completed >> "%LOG_FILE%"
+    echo [OK] Configuration completed successfully
+    echo [OK] Configuration wizard completed >> "%LOG_FILE%"
 ) else (
     echo [OK] Configuration failed
     echo ERROR: Configuration wizard failed >> "%LOG_FILE%"
@@ -425,7 +425,7 @@ echo.
 REM Create backup directory
 if not exist "%BACKUP_DIR%" (
     mkdir "%BACKUP_DIR%"
-    echo [???] Created backup directory: %BACKUP_DIR%
+    echo [OK] Created backup directory: %BACKUP_DIR%
 )
 
 REM Install server dependencies
@@ -434,8 +434,8 @@ cd /d "%INSTALL_DIR%server"
 if exist package.json (
     call npm install --production
     if !errorLevel! equ 0 (
-        echo [???] Server dependencies installed
-        echo [???] Server dependencies installation completed >> "%LOG_FILE%"
+        echo [OK] Server dependencies installed
+        echo [OK] Server dependencies installation completed >> "%LOG_FILE%"
     ) else (
         echo [OK] Failed to install server dependencies
         echo ERROR: Server dependencies installation failed >> "%LOG_FILE%"
@@ -456,8 +456,8 @@ if exist package.json (
     call npm install
     call npm run build
     if !errorLevel! equ 0 (
-        echo [???] Client application built successfully
-        echo [???] Client build completed >> "%LOG_FILE%"
+        echo [OK] Client application built successfully
+        echo [OK] Client build completed >> "%LOG_FILE%"
     ) else (
         echo [OK] Failed to build client application
         echo ERROR: Client build failed >> "%LOG_FILE%"
@@ -482,14 +482,14 @@ REM Create database
 echo Creating database with complete schema...
 sqlcmd -S "%DB_SERVER%" -i "%INSTALL_DIR%database\create-database-complete.sql" >nul 2>&1
 if !errorLevel! equ 0 (
-    echo [???] Database created successfully
-    echo [???] Database creation completed >> "%LOG_FILE%"
+    echo [OK] Database created successfully
+    echo [OK] Database creation completed >> "%LOG_FILE%"
 ) else (
     echo [OK] Database creation failed - trying alternative method
     call "%INSTALL_DIR%scripts\create-database.bat"
     if !errorLevel! equ 0 (
-        echo [???] Database created successfully
-        echo [???] Database creation completed >> "%LOG_FILE%"
+        echo [OK] Database created successfully
+        echo [OK] Database creation completed >> "%LOG_FILE%"
     ) else (
         echo [OK] Database creation failed
         echo ERROR: Database creation failed >> "%LOG_FILE%"
@@ -503,8 +503,8 @@ echo.
 echo Importing sample data...
 call "%INSTALL_DIR%scripts\import-sample-data.bat"
 if !errorLevel! equ 0 (
-    echo [???] Sample data imported successfully
-    echo [???] Sample data import completed >> "%LOG_FILE%"
+    echo [OK] Sample data imported successfully
+    echo [OK] Sample data import completed >> "%LOG_FILE%"
 ) else (
     echo [OK] Sample data import had issues - continuing anyway
     echo WARNING: Sample data import issues >> "%LOG_FILE%"
@@ -515,8 +515,8 @@ echo.
 echo Adding CompanyCode multi-tenant support...
 sqlcmd -S "%DB_SERVER%" -d %DB_NAME% -i "%INSTALL_DIR%database\add-company-code-support.sql" >nul 2>&1
 if !errorLevel! equ 0 (
-    echo [???] CompanyCode columns added successfully
-    echo [???] CompanyCode support completed >> "%LOG_FILE%"
+    echo [OK] CompanyCode columns added successfully
+    echo [OK] CompanyCode support completed >> "%LOG_FILE%"
 ) else (
     echo [OK] CompanyCode addition had issues - continuing anyway
     echo WARNING: CompanyCode addition issues >> "%LOG_FILE%"
@@ -528,8 +528,8 @@ if exist "%INSTALL_DIR%database\create-admin-user.sql" (
     echo Creating admin user from configuration...
     sqlcmd -S "%DB_SERVER%" -d %DB_NAME% -i "%INSTALL_DIR%database\create-admin-user.sql" >nul 2>&1
     if !errorLevel! equ 0 (
-        echo [???] Admin user created successfully
-        echo [???] Admin user creation completed >> "%LOG_FILE%"
+        echo [OK] Admin user created successfully
+        echo [OK] Admin user creation completed >> "%LOG_FILE%"
     ) else (
         echo [OK] Admin user creation had issues
         echo WARNING: Admin user creation failed >> "%LOG_FILE%"
@@ -541,16 +541,16 @@ echo.
 echo Creating file upload directory...
 if not exist "%INSTALL_DIR%server\uploads" (
     mkdir "%INSTALL_DIR%server\uploads"
-    echo [???] Created uploads directory: %INSTALL_DIR%server\uploads
-    echo [???] Uploads directory created >> "%LOG_FILE%"
+    echo [OK] Created uploads directory: %INSTALL_DIR%server\uploads
+    echo [OK] Uploads directory created >> "%LOG_FILE%"
 ) else (
-    echo [???] Uploads directory already exists
+    echo [OK] Uploads directory already exists
 )
 
 REM Set permissions on uploads directory
 icacls "%INSTALL_DIR%server\uploads" /grant "Everyone:(OI)(CI)F" /T >nul 2>&1
 if !errorLevel! equ 0 (
-    echo [???] Permissions set on uploads directory
+    echo [OK] Permissions set on uploads directory
 ) else (
     echo [OK] Could not set permissions - may need manual configuration
 )
@@ -565,7 +565,7 @@ REM Create Windows service (optional)
 echo Configuring application service...
 if exist "%INSTALL_DIR%scripts\install-service.bat" (
     call "%INSTALL_DIR%scripts\install-service.bat"
-    echo [???] Service configuration completed
+    echo [OK] Service configuration completed
 ) else (
     echo [OK] Service installer not found - manual startup required
 )
@@ -576,8 +576,8 @@ echo Configuring Windows Firewall...
 netsh advfirewall firewall delete rule name="Field Service API" >nul 2>&1
 netsh advfirewall firewall add rule name="Field Service API" dir=in action=allow protocol=TCP localport=5000 >nul 2>&1
 if !errorLevel! equ 0 (
-    echo [???] Firewall rule added for port 5000
-    echo [???] Firewall configuration completed >> "%LOG_FILE%"
+    echo [OK] Firewall rule added for port 5000
+    echo [OK] Firewall configuration completed >> "%LOG_FILE%"
 ) else (
     echo [OK] Could not configure firewall - may need manual configuration
     echo WARNING: Firewall configuration failed >> "%LOG_FILE%"
@@ -587,7 +587,7 @@ REM Create desktop shortcuts
 echo.
 echo Creating shortcuts...
 call "%INSTALL_DIR%scripts\create-shortcuts.bat"
-echo [???] Desktop shortcuts created
+echo [OK] Desktop shortcuts created
 
 echo.
 echo ============================================
@@ -598,14 +598,14 @@ echo.
 REM Set up environment file
 if not exist "%INSTALL_DIR%server\.env" (
     copy "%INSTALL_DIR%server\.env.example" "%INSTALL_DIR%server\.env" >nul
-    echo [???] Environment file created
+    echo [OK] Environment file created
 )
 
 REM Set permissions
 echo Setting file permissions...
 icacls "%INSTALL_DIR%" /grant Users:F /T >nul 2>&1
 icacls "%BACKUP_DIR%" /grant Users:F /T >nul 2>&1
-echo [???] File permissions configured
+echo [OK] File permissions configured
 
 REM Schedule backup task
 echo.
@@ -613,8 +613,8 @@ echo Setting up automatic backups...
 schtasks /delete /tn "Field Service Backup" /f >nul 2>&1
 schtasks /create /tn "Field Service Backup" /tr "%INSTALL_DIR%scripts\backup-database.bat" /sc daily /st 02:00 /ru SYSTEM >nul 2>&1
 if !errorLevel! equ 0 (
-    echo [???] Daily backup scheduled for 2:00 AM
-    echo [???] Backup task scheduling completed >> "%LOG_FILE%"
+    echo [OK] Daily backup scheduled for 2:00 AM
+    echo [OK] Backup task scheduling completed >> "%LOG_FILE%"
 ) else (
     echo [OK] Could not schedule automatic backups
     echo WARNING: Backup scheduling failed >> "%LOG_FILE%"
@@ -633,7 +633,7 @@ start /min cmd /c "node api-minimal.js"
 timeout /t 5 /nobreak >nul
 
 REM Check if service is responding
-powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:5000/api/test' -TimeoutSec 10; Write-Host '[???] Application test passed' } catch { Write-Host '[OK] Application test failed - may need manual startup' }"
+powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:5000/api/test' -TimeoutSec 10; Write-Host '[OK] Application test passed' } catch { Write-Host '[OK] Application test failed - may need manual startup' }"
 
 echo.
 echo Installation Summary:
