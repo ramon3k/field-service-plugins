@@ -676,32 +676,69 @@ if !errorLevel! neq 0 (
 )
 
 REM Create database
-echo Creating database with complete schema...
+echo Creating database...
 echo Attempting database creation >> setup-debug.log
 echo Using server: !DB_SERVER! >> setup-debug.log
 echo Using auth: !DB_AUTH! >> setup-debug.log
+echo Using database name: !DB_NAME! >> setup-debug.log
 
-REM Determine authentication method
+REM Step 1: Create the database first
+echo Step 1: Creating database !DB_NAME!...
 if /i "!DB_AUTH!"=="Windows" (
     echo Using Windows Authentication >> setup-debug.log
-    REM Connect to master database to create new database
-    sqlcmd -S "!DB_SERVER!" -E -d master -i "%INSTALL_DIR%database\create-database-complete.sql"
+    sqlcmd -S "!DB_SERVER!" -E -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]"
     set DB_CREATE_EXIT=!errorLevel!
 ) else (
     echo Using SQL Authentication >> setup-debug.log
     echo Using user: !DB_USER! >> setup-debug.log
-    REM Connect to master database to create new database
-    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -i "%INSTALL_DIR%database\create-database-complete.sql"
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]"
     set DB_CREATE_EXIT=!errorLevel!
 )
 
 echo Database creation exit code: !DB_CREATE_EXIT! >> setup-debug.log
 
-if !DB_CREATE_EXIT! equ 0 (
-    echo [OK] Database created successfully
+if !DB_CREATE_EXIT! neq 0 (
+    echo [ERROR] Failed to create database
+    echo Database creation failed with exit code: !DB_CREATE_EXIT! >> setup-debug.log
+    echo.
+    echo ============================================
+    echo  DATABASE CREATION FAILED
+    echo ============================================
+    echo.
+    echo Could not create the database.
+    echo.
+    echo Please check:
+    echo 1. SQL Server is running (services.msc)
+    echo 2. Server name is correct: !DB_SERVER!
+    echo 3. Authentication works (check config.json)
+    echo.
+    echo Check setup-debug.log for details
+    echo.
+    pause
+    exit /b 1
+)
+
+echo [OK] Database created/verified
+
+REM Step 2: Create tables and schema
+echo Step 2: Creating tables and schema...
+echo Creating schema in !DB_NAME! >> setup-debug.log
+
+if /i "!DB_AUTH!"=="Windows" (
+    sqlcmd -S "!DB_SERVER!" -E -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql"
+    set SCHEMA_EXIT=!errorLevel!
+) else (
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql"
+    set SCHEMA_EXIT=!errorLevel!
+)
+
+echo Schema creation exit code: !SCHEMA_EXIT! >> setup-debug.log
+
+if !SCHEMA_EXIT! equ 0 (
+    echo [OK] Database schema created successfully
     echo [OK] Database creation completed >> "!LOG_FILE!"
 ) else (
-    echo [OK] Database creation failed - trying alternative method
+    echo [OK] Schema creation had issues - trying alternative method
     echo Trying create-database.bat script >> setup-debug.log
     call "%INSTALL_DIR%scripts\create-database.bat"
     if !errorLevel! equ 0 (
@@ -710,16 +747,10 @@ if !DB_CREATE_EXIT! equ 0 (
     ) else (
         echo.
         echo ============================================
-        echo  DATABASE CREATION FAILED
+        echo  SCHEMA CREATION FAILED
         echo ============================================
         echo.
-        echo Could not create the database.
-        echo.
-        echo Please check:
-        echo 1. SQL Server is running (services.msc)
-        echo 2. Server name is correct: !DB_SERVER!
-        echo 3. Authentication works (check config.json)
-        echo.
+        echo Could not create the database schema.
         echo Check setup-debug.log for details
         echo.
         pause
