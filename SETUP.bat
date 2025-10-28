@@ -113,6 +113,8 @@ echo Reading config... >> setup-debug.log
 REM Read configuration from config.json if it exists
 set "DB_NAME=FieldServiceDB"
 set "DB_SERVER=localhost\SQLEXPRESS"
+set "DB_AUTH=Windows"
+set "DB_USER=sa"
 set "BACKUP_DIR=C:\FieldServiceBackups"
 
 if exist "%INSTALL_DIR%config.json" (
@@ -135,8 +137,26 @@ if exist "%INSTALL_DIR%config.json" (
         set "DB_SERVER=!DB_SERVER:\\=\!"
     )
     
+    REM Extract DatabaseAuth from config.json
+    for /f "tokens=2 delims=:," %%a in ('type "%INSTALL_DIR%config.json" ^| findstr /C:"DatabaseAuth"') do (
+        set "DB_AUTH=%%~a"
+        set "DB_AUTH=!DB_AUTH: =!"
+        set "DB_AUTH=!DB_AUTH:"=!"
+    )
+    
+    REM Extract DatabaseUser from config.json
+    for /f "tokens=2 delims=:," %%a in ('type "%INSTALL_DIR%config.json" ^| findstr /C:"DatabaseUser"') do (
+        set "DB_USER=%%~a"
+        set "DB_USER=!DB_USER: =!"
+        set "DB_USER=!DB_USER:"=!"
+    )
+    
+    REM If DatabaseUser is empty, default to 'sa'
+    if "!DB_USER!"=="" set "DB_USER=sa"
+    
     echo [OK] Using configured database: !DB_NAME! on !DB_SERVER!
-    echo Config loaded >> setup-debug.log
+    echo [OK] Authentication: !DB_AUTH! (User: !DB_USER!)
+    echo Config loaded - Auth: !DB_AUTH!, User: !DB_USER! >> setup-debug.log
 ) else (
     echo [!] No config.json found - using defaults
     echo [!] Run CONFIGURE.bat first for custom settings
@@ -147,6 +167,8 @@ echo.
 echo Installation Directory: %INSTALL_DIR%
 echo Database Name: !DB_NAME!
 echo Database Server: !DB_SERVER!
+echo Database Auth: !DB_AUTH!
+echo Database User: !DB_USER!
 echo Backup Directory: %BACKUP_DIR%
 echo About to show summary >> setup-debug.log
 echo Summary shown successfully >> setup-debug.log
