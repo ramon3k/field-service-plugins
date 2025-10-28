@@ -342,24 +342,52 @@ echo SQL needs to be installed >> setup-debug.log
     echo Installing SQL Server Express...
     echo (This runs silently - please wait 10-15 minutes)
     echo.
+    echo SQL installation started at: %TIME% >> setup-debug.log
     
-    "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="%SQL_SA_PASSWORD%" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic
+    REM Create a temp folder for SQL setup logs
+    set "SQL_LOG_DIR=%TEMP%\SQLServerSetup"
+    if not exist "!SQL_LOG_DIR!" mkdir "!SQL_LOG_DIR!"
     
-    if !errorLevel! equ 0 (
+    REM Run SQL installation with better error handling and logging
+    "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" /Q /IACCEPTSQLSERVERLICENSETERMS /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=SQLEXPRESS /SECURITYMODE=SQL /SAPWD="!SQL_SA_PASSWORD!" /TCPENABLED=1 /BROWSERSVCSTARTUPTYPE=Automatic /SQLSVCACCOUNT="NT AUTHORITY\SYSTEM" /UPDATEENABLED=False /UpdateSource=MU /INDICATEPROGRESS
+    
+    set SQL_EXIT_CODE=!errorLevel!
+    echo SQL installation finished at: %TIME% with exit code: !SQL_EXIT_CODE! >> setup-debug.log
+    
+    if !SQL_EXIT_CODE! equ 0 (
         echo [OK] SQL Server Express installed successfully
-        echo [OK] SQL Server Express installation completed >> "%LOG_FILE%"
+        echo [OK] SQL Server Express installation completed >> "!LOG_FILE!"
     ) else (
         echo.
         echo ============================================
         echo  SQL SERVER INSTALLATION FAILED
         echo ============================================
         echo.
-        echo Error code: !errorLevel!
+        echo Error code: !SQL_EXIT_CODE!
         echo.
         echo Common causes:
         echo  - SQL Server already installed with different instance name
-        echo  - Insufficient permissions
+        echo  - Insufficient permissions (must run as Administrator)
         echo  - Conflicting SQL Server version
+        echo  - .NET Framework not installed or outdated
+        echo  - Windows Updates required
+        echo.
+        echo SQL Server setup logs are usually located at:
+        echo   C:\Program Files\Microsoft SQL Server\150\Setup Bootstrap\Log
+        echo.
+        echo SOLUTION OPTIONS:
+        echo ----------------------------------------
+        echo 1. Check if SQL Server is already installed:
+        echo    - Open Services (services.msc)
+        echo    - Look for "SQL Server (SQLEXPRESS)" or similar
+        echo.
+        echo 2. Install .NET Framework 4.8 or later
+        echo.
+        echo 3. Run Windows Update and install all updates
+        echo.
+        echo 4. Try manual installation:
+        echo    - Run: %INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe
+        echo    - Follow the GUI wizard
         echo.
         echo Check the log file for details: !LOG_FILE!
         echo.
