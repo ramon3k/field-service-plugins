@@ -691,32 +691,59 @@ if /i "!DB_AUTH!"=="Windows" (
     echo Using Windows Authentication >> setup-debug.log
     echo Connecting to !DB_SERVER! with Windows Auth >> setup-debug.log
     
-    REM First, drop the database if it exists (with file deletion)
-    sqlcmd -S "!DB_SERVER!" -E -d master -Q "IF EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') BEGIN ALTER DATABASE [!DB_NAME!] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [!DB_NAME!]; END"
+    REM First, drop the database if it exists (ignore errors if it doesn't exist)
+    sqlcmd -S "!DB_SERVER!" -E -d master -Q "IF EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') BEGIN ALTER DATABASE [!DB_NAME!] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [!DB_NAME!]; END" >nul 2>&1
     
     REM Wait a moment for files to be released
     timeout /t 2 /nobreak >nul
     
-    REM Now create fresh
-    sqlcmd -S "!DB_SERVER!" -E -d master -Q "CREATE DATABASE [!DB_NAME!]; SELECT @@SERVERNAME as ServerName, DB_NAME() as CurrentDB;"
+    REM Now create fresh (this is the important part)
+    sqlcmd -S "!DB_SERVER!" -E -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]"
     set DB_CREATE_EXIT=!errorLevel!
+    
+    REM Verify it was created
+    sqlcmd -S "!DB_SERVER!" -E -d master -Q "SELECT @@SERVERNAME as ServerName, name as DatabaseName FROM sys.databases WHERE name = '!DB_NAME!'"
 ) else (
     echo Using SQL Authentication >> setup-debug.log
     echo Using user: !DB_USER! >> setup-debug.log
     echo Connecting to !DB_SERVER! with SQL Auth (user: !DB_USER!) >> setup-debug.log
     
-    REM First, drop the database if it exists (with file deletion)
-    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "IF EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') BEGIN ALTER DATABASE [!DB_NAME!] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [!DB_NAME!]; END"
+    REM First, drop the database if it exists (ignore errors if it doesn't exist)
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "IF EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') BEGIN ALTER DATABASE [!DB_NAME!] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [!DB_NAME!]; END" >nul 2>&1
     
     REM Wait a moment for files to be released
     timeout /t 2 /nobreak >nul
     
-    REM Now create fresh
-    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "CREATE DATABASE [!DB_NAME!]; SELECT @@SERVERNAME as ServerName, DB_NAME() as CurrentDB;"
+    REM Now create fresh (this is the important part)
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]"
     set DB_CREATE_EXIT=!errorLevel!
+    
+    REM Verify it was created
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "SELECT @@SERVERNAME as ServerName, name as DatabaseName FROM sys.databases WHERE name = '!DB_NAME!'"
 )
 
 echo Database creation exit code: !DB_CREATE_EXIT! >> setup-debug.log
+
+REM Verify database actually exists (don't rely on exit code)
+echo Verifying database exists...
+if /i "!DB_AUTH!"=="Windows" (
+    sqlcmd -S "!DB_SERVER!" -E -d master -Q "SELECT COUNT(*) as DBExists FROM sys.databases WHERE name = '!DB_NAME!'" -h -1 -W > temp_dbcheck.txt 2>&1
+) else (
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "SELECT COUNT(*) as DBExists FROM sys.databases WHERE name = '!DB_NAME!'" -h -1 -W > temp_dbcheck.txt 2>&1
+)
+
+set /p DB_EXISTS=<temp_dbcheck.txt
+set "DB_EXISTS=!DB_EXISTS: =!"
+del temp_dbcheck.txt 2>nul
+
+echo Database exists check result: !DB_EXISTS! >> setup-debug.log
+
+if "!DB_EXISTS!"=="1" (
+    echo [OK] Database created/verified successfully
+    set DB_CREATE_EXIT=0
+) else (
+    set DB_CREATE_EXIT=1
+)
 
 if !DB_CREATE_EXIT! neq 0 (
     echo [ERROR] Failed to create database
