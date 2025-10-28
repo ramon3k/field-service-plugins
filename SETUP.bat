@@ -614,20 +614,26 @@ if !errorLevel! equ 0 (
 
 echo After database creation >> setup-debug.log
 
-REM Import sample data
+REM Import sample data (optional - don't fail if it doesn't work)
 echo.
 echo Importing sample data...
 echo About to import sample data >> setup-debug.log
 
-call "%INSTALL_DIR%scripts\import-sample-data.bat"
-echo Sample data import returned: !errorLevel! >> setup-debug.log
-
-if !errorLevel! equ 0 (
-    echo [OK] Sample data imported successfully
-    echo [OK] Sample data import completed >> "!LOG_FILE!"
+if exist "%INSTALL_DIR%scripts\import-sample-data.bat" (
+    echo Sample data script found >> setup-debug.log
+    call "%INSTALL_DIR%scripts\import-sample-data.bat" 2>nul
+    echo Sample data import returned: !errorLevel! >> setup-debug.log
+    
+    if !errorLevel! equ 0 (
+        echo [OK] Sample data imported successfully
+        echo [OK] Sample data import completed >> "!LOG_FILE!"
+    ) else (
+        echo [OK] Sample data import had issues - continuing anyway
+        echo WARNING: Sample data import issues >> "!LOG_FILE!"
+    )
 ) else (
-    echo [OK] Sample data import had issues - continuing anyway
-    echo WARNING: Sample data import issues >> "!LOG_FILE!"
+    echo Sample data script not found - skipping >> setup-debug.log
+    echo [OK] Sample data script not found - skipping
 )
 
 echo After sample data import >> setup-debug.log

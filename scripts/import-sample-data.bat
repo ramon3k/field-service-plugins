@@ -1,8 +1,8 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-:: Import Sample Data Script
-:: Loads sample customers, sites, and tickets for demonstration
+REM Import Sample Data Script
+REM Loads sample customers, sites, and tickets for demonstration
 
 echo.
 echo ==========================================
@@ -14,24 +14,24 @@ set "DB_NAME=FieldServiceDB"
 set "SQL_INSTANCE=.\SQLEXPRESS"
 set "INSTALL_DIR=%~dp0.."
 
-echo Database: %DB_NAME%
-echo Instance: %SQL_INSTANCE%
+echo Database: !DB_NAME!
+echo Instance: !SQL_INSTANCE!
 echo.
 
-:: Check if sample data file exists
-if exist "%INSTALL_DIR%\database\import-sample-data.sql" (
+REM Check if sample data file exists
+if exist "!INSTALL_DIR!\database\import-sample-data.sql" (
     echo Found sample data file, importing...
-    sqlcmd -S "%SQL_INSTANCE%" -d "%DB_NAME%" -i "%INSTALL_DIR%\database\import-sample-data.sql"
+    sqlcmd -S "!SQL_INSTANCE!" -d "!DB_NAME!" -i "!INSTALL_DIR!\database\import-sample-data.sql"
     if !errorLevel! equ 0 (
-        echo [√] Sample data imported successfully
+        echo [OK] Sample data imported successfully
     ) else (
         echo WARNING: Sample data import had issues
     )
 ) else (
     echo Creating basic sample data...
     
-    :: Create sample data inline
-    sqlcmd -S "%SQL_INSTANCE%" -d "%DB_NAME%" -Q "
+    REM Create sample data inline
+    sqlcmd -S "!SQL_INSTANCE!" -d "!DB_NAME!" -Q "
     -- Insert sample customers
     IF NOT EXISTS (SELECT 1 FROM Customers WHERE CustomerID = 'CUST_001')
     BEGIN
@@ -98,17 +98,17 @@ if exist "%INSTALL_DIR%\database\import-sample-data.sql" (
     "
     
     if !errorLevel! equ 0 (
-        echo [√] Basic sample data created successfully
+        echo [OK] Basic sample data created successfully
     ) else (
         echo WARNING: Could not create sample data
         exit /b 1
     )
 )
 
-:: Verify data import
+REM Verify data import
 echo.
 echo Verifying sample data...
-sqlcmd -S "%SQL_INSTANCE%" -d "%DB_NAME%" -Q "
+sqlcmd -S "!SQL_INSTANCE!" -d "!DB_NAME!" -Q "
 SELECT 
     'Customers' as TableName, COUNT(*) as RecordCount FROM Customers
 UNION ALL
