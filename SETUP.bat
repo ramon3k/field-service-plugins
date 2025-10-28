@@ -217,6 +217,8 @@ if !FREESPACE_GB! LSS 5 (
 echo Disk space section completed >> setup-debug.log
 :skip_diskspace
 
+echo About to check SQL Server >> setup-debug.log
+
 REM Check if SQL Server is already installed
 echo.
 echo Checking for SQL Server Express...
@@ -228,6 +230,8 @@ if !errorLevel! equ 0 (
     echo [OK] SQL Server Express not found - will install
     set "SQL_INSTALLED=false"
 )
+
+echo SQL check done, result: !SQL_INSTALLED! >> setup-debug.log
 
 REM Check if Node.js is installed
 echo.
@@ -242,23 +246,35 @@ if !errorLevel! equ 0 (
     set "NODE_INSTALLED=false"
 )
 
+echo Node check done, result: !NODE_INSTALLED! >> setup-debug.log
+
 echo.
 echo ============================================
 echo Step 2: Installing Prerequisites
 echo ============================================
 echo.
 
+echo About to check SQL installation >> setup-debug.log
+
 REM Install SQL Server Express if needed
+echo Checking SQL_INSTALLED value: !SQL_INSTALLED! >> setup-debug.log
+
 if "!SQL_INSTALLED!"=="false" (
+    echo SQL needs to be installed >> setup-debug.log
     echo Installing SQL Server Express 2019...
     echo This may take 10-15 minutes. Please wait...
     echo.
     
+    echo Checking for local installer >> setup-debug.log
+    
     REM Check if installer exists locally
     if exist "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" (
         echo [OK] Found SQL Server installer in installers folder
+        echo Installer found locally >> setup-debug.log
         goto :install_sql
     )
+    
+    echo Installer not found, will download >> setup-debug.log
     
     REM Try to download if not found
     echo [OK] SQL Server installer not found locally
@@ -266,9 +282,14 @@ if "!SQL_INSTALLED!"=="false" (
     echo [OK] This may take several minutes depending on your connection...
     echo.
     
+    echo About to run PowerShell download >> setup-debug.log
+    
     powershell -ExecutionPolicy Bypass -Command "try { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri 'https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLEXPR_x64_ENU.exe' -OutFile '%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe' -UseBasicParsing; exit 0 } catch { Write-Host 'Download failed:' $_.Exception.Message; exit 1 }" 2>&1
     
+    echo PowerShell download completed with errorlevel: !errorLevel! >> setup-debug.log
+    
     if !errorLevel! neq 0 (
+        echo Download failed >> setup-debug.log
         echo.
         echo ============================================
         echo  DOWNLOAD FAILED
@@ -338,13 +359,21 @@ if "!SQL_INSTALLED!"=="false" (
     )
 ) else (
     echo [OK] Using existing SQL Server Express installation
+    echo Using existing SQL >> setup-debug.log
 )
 
+echo SQL section completed >> setup-debug.log
+
 REM Install Node.js if needed
+echo About to check Node installation >> setup-debug.log
+
 if "!NODE_INSTALLED!"=="false" (
+    echo Node needs to be installed >> setup-debug.log
     echo.
     echo Installing Node.js LTS...
     echo.
+    
+    echo Checking for local Node installer >> setup-debug.log
     
     REM Check if installer exists locally
     if exist "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" (
