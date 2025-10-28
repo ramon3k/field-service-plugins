@@ -684,14 +684,19 @@ echo Using database name: !DB_NAME! >> setup-debug.log
 
 REM Step 1: Create the database first
 echo Step 1: Creating database !DB_NAME!...
+echo About to create database on server: !DB_SERVER!
+echo.
+
 if /i "!DB_AUTH!"=="Windows" (
     echo Using Windows Authentication >> setup-debug.log
-    sqlcmd -S "!DB_SERVER!" -E -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]"
+    echo Connecting to !DB_SERVER! with Windows Auth >> setup-debug.log
+    sqlcmd -S "!DB_SERVER!" -E -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]; SELECT @@SERVERNAME as ServerName, DB_NAME() as CurrentDB;"
     set DB_CREATE_EXIT=!errorLevel!
 ) else (
     echo Using SQL Authentication >> setup-debug.log
     echo Using user: !DB_USER! >> setup-debug.log
-    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]"
+    echo Connecting to !DB_SERVER! with SQL Auth (user: !DB_USER!) >> setup-debug.log
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]; SELECT @@SERVERNAME as ServerName, DB_NAME() as CurrentDB;"
     set DB_CREATE_EXIT=!errorLevel!
 )
 
@@ -724,11 +729,16 @@ REM Step 2: Create tables and schema
 echo Step 2: Creating tables and schema...
 echo Creating schema in !DB_NAME! >> setup-debug.log
 
+REM The SQL file has CREATE DATABASE at the top, but we need to skip that
+REM since we already created the database. We'll execute it anyway since
+REM it has IF NOT EXISTS checks, but connect directly to our database
 if /i "!DB_AUTH!"=="Windows" (
-    sqlcmd -S "!DB_SERVER!" -E -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql"
+    REM Use -d to connect to our database, the script will skip the CREATE DATABASE
+    REM since it already exists and will use the tables section
+    sqlcmd -S "!DB_SERVER!" -E -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql" -I
     set SCHEMA_EXIT=!errorLevel!
 ) else (
-    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql"
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql" -I
     set SCHEMA_EXIT=!errorLevel!
 )
 
