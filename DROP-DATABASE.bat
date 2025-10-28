@@ -101,8 +101,47 @@ if /i "!DB_AUTH!"=="Windows" (
 
 if !DROP_EXIT! equ 0 (
     echo.
-    echo [OK] Database drop completed
+    echo [OK] Database drop command completed
     echo.
+    
+    REM Also try to delete the physical files if they still exist
+    echo Checking for leftover database files...
+    
+    REM Common SQL Server data file locations
+    set "DATA_DIR1=C:\Program Files\Microsoft SQL Server\MSSQL15.SQLEXPRESS\MSSQL\DATA"
+    set "DATA_DIR2=C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA"
+    set "DATA_DIR3=C:\Program Files\Microsoft SQL Server\MSSQL14.SQLEXPRESS\MSSQL\DATA"
+    
+    REM Try to delete files from each location
+    if exist "!DATA_DIR1!\!DB_NAME!.mdf" (
+        echo Found files in !DATA_DIR1!
+        echo Attempting to delete database files...
+        del /F "!DATA_DIR1!\!DB_NAME!.mdf" 2>nul
+        del /F "!DATA_DIR1!\!DB_NAME!_log.ldf" 2>nul
+        if !errorLevel! equ 0 (
+            echo [OK] Database files deleted
+        ) else (
+            echo [WARNING] Could not delete files - they may be locked
+            echo Try stopping SQL Server service first:
+            echo   net stop MSSQL$SQLEXPRESS
+            echo   Then run this script again
+        )
+    )
+    
+    if exist "!DATA_DIR2!\!DB_NAME!.mdf" (
+        echo Found files in !DATA_DIR2!
+        del /F "!DATA_DIR2!\!DB_NAME!.mdf" 2>nul
+        del /F "!DATA_DIR2!\!DB_NAME!_log.ldf" 2>nul
+    )
+    
+    if exist "!DATA_DIR3!\!DB_NAME!.mdf" (
+        echo Found files in !DATA_DIR3!
+        del /F "!DATA_DIR3!\!DB_NAME!.mdf" 2>nul
+        del /F "!DATA_DIR3!\!DB_NAME!_log.ldf" 2>nul
+    )
+    
+    echo.
+    echo Database and files removed.
     echo You can now run SETUP.bat to recreate the database.
 ) else (
     echo.
