@@ -603,31 +603,43 @@ if !errorLevel! equ 0 (
     call "%INSTALL_DIR%scripts\create-database.bat"
     if !errorLevel! equ 0 (
         echo [OK] Database created successfully
-        echo [OK] Database creation completed >> "%LOG_FILE%"
+        echo [OK] Database creation completed >> "!LOG_FILE!"
     ) else (
         echo [OK] Database creation failed
-        echo ERROR: Database creation failed >> "%LOG_FILE%"
+        echo ERROR: Database creation failed >> "!LOG_FILE!"
         pause
         exit /b 1
     )
 )
 
+echo After database creation >> setup-debug.log
+
 REM Import sample data
 echo.
 echo Importing sample data...
+echo About to import sample data >> setup-debug.log
+
 call "%INSTALL_DIR%scripts\import-sample-data.bat"
+echo Sample data import returned: !errorLevel! >> setup-debug.log
+
 if !errorLevel! equ 0 (
     echo [OK] Sample data imported successfully
-    echo [OK] Sample data import completed >> "%LOG_FILE%"
+    echo [OK] Sample data import completed >> "!LOG_FILE!"
 ) else (
     echo [OK] Sample data import had issues - continuing anyway
-    echo WARNING: Sample data import issues >> "%LOG_FILE%"
+    echo WARNING: Sample data import issues >> "!LOG_FILE!"
 )
+
+echo After sample data import >> setup-debug.log
 
 REM Add CompanyCode support to all tables
 echo.
 echo Adding CompanyCode multi-tenant support...
+echo About to add CompanyCode support >> setup-debug.log
+
 sqlcmd -S "!DB_SERVER!" -d "!DB_NAME!" -i "%INSTALL_DIR%database\add-company-code-support.sql" >nul 2>&1
+echo CompanyCode addition returned: !errorLevel! >> setup-debug.log
+
 if !errorLevel! equ 0 (
     echo [OK] CompanyCode columns added successfully
     echo [OK] CompanyCode support completed >> "%LOG_FILE%"
