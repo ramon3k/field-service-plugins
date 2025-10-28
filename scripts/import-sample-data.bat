@@ -1,6 +1,9 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+REM Fix working directory
+cd /d "%~dp0"
+
 REM Import Sample Data Script
 REM Loads sample customers, sites, and tickets for demonstration
 
@@ -16,7 +19,16 @@ set "INSTALL_DIR=%~dp0.."
 
 echo Database: !DB_NAME!
 echo Instance: !SQL_INSTANCE!
+echo Working directory: %CD%
 echo.
+
+REM Check if sqlcmd is available
+where sqlcmd >nul 2>&1
+if !errorLevel! neq 0 (
+    echo ERROR: sqlcmd not found in PATH
+    echo SQL Server may not be installed correctly
+    exit /b 1
+)
 
 REM Check if sample data file exists
 if exist "!INSTALL_DIR!\database\import-sample-data.sql" (

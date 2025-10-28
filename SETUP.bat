@@ -655,19 +655,49 @@ if !errorLevel! neq 0 (
 
 REM Create database
 echo Creating database with complete schema...
-sqlcmd -S "!DB_SERVER!" -i "%INSTALL_DIR%database\create-database-complete.sql" >nul 2>&1
-if !errorLevel! equ 0 (
+echo Attempting database creation >> setup-debug.log
+echo Using server: !DB_SERVER! >> setup-debug.log
+echo Using auth: !DB_AUTH! >> setup-debug.log
+
+REM Determine authentication method
+if /i "!DB_AUTH!"=="Windows" (
+    echo Using Windows Authentication >> setup-debug.log
+    sqlcmd -S "!DB_SERVER!" -E -i "%INSTALL_DIR%database\create-database-complete.sql"
+    set DB_CREATE_EXIT=!errorLevel!
+) else (
+    echo Using SQL Authentication >> setup-debug.log
+    echo Using user: !DB_USER! >> setup-debug.log
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -i "%INSTALL_DIR%database\create-database-complete.sql"
+    set DB_CREATE_EXIT=!errorLevel!
+)
+
+echo Database creation exit code: !DB_CREATE_EXIT! >> setup-debug.log
+
+if !DB_CREATE_EXIT! equ 0 (
     echo [OK] Database created successfully
     echo [OK] Database creation completed >> "!LOG_FILE!"
 ) else (
     echo [OK] Database creation failed - trying alternative method
+    echo Trying create-database.bat script >> setup-debug.log
     call "%INSTALL_DIR%scripts\create-database.bat"
     if !errorLevel! equ 0 (
         echo [OK] Database created successfully
         echo [OK] Database creation completed >> "!LOG_FILE!"
     ) else (
-        echo [OK] Database creation failed
-        echo ERROR: Database creation failed >> "!LOG_FILE!"
+        echo.
+        echo ============================================
+        echo  DATABASE CREATION FAILED
+        echo ============================================
+        echo.
+        echo Could not create the database.
+        echo.
+        echo Please check:
+        echo 1. SQL Server is running (services.msc)
+        echo 2. Server name is correct: !DB_SERVER!
+        echo 3. Authentication works (check config.json)
+        echo.
+        echo Check setup-debug.log for details
+        echo.
         pause
         exit /b 1
     )
@@ -682,15 +712,19 @@ echo About to import sample data >> setup-debug.log
 
 if exist "%INSTALL_DIR%scripts\import-sample-data.bat" (
     echo Sample data script found >> setup-debug.log
-    call "%INSTALL_DIR%scripts\import-sample-data.bat" 2>nul
-    echo Sample data import returned: !errorLevel! >> setup-debug.log
     
-    if !errorLevel! equ 0 (
+    REM Try to run it with output redirection to capture errors
+    call "%INSTALL_DIR%scripts\import-sample-data.bat" >> setup-debug.log 2>&1
+    set IMPORT_EXIT=!errorLevel!
+    
+    echo Sample data import returned: !IMPORT_EXIT! >> setup-debug.log
+    
+    if !IMPORT_EXIT! equ 0 (
         echo [OK] Sample data imported successfully
         echo [OK] Sample data import completed >> "!LOG_FILE!"
     ) else (
-        echo [OK] Sample data import had issues - continuing anyway
-        echo WARNING: Sample data import issues >> "!LOG_FILE!"
+        echo [OK] Sample data import had issues - continuing anyway (error: !IMPORT_EXIT!)
+        echo WARNING: Sample data import issues (error: !IMPORT_EXIT!) >> "!LOG_FILE!"
     )
 ) else (
     echo Sample data script not found - skipping >> setup-debug.log
