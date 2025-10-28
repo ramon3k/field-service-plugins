@@ -684,12 +684,14 @@ echo Using auth: !DB_AUTH! >> setup-debug.log
 REM Determine authentication method
 if /i "!DB_AUTH!"=="Windows" (
     echo Using Windows Authentication >> setup-debug.log
-    sqlcmd -S "!DB_SERVER!" -E -i "%INSTALL_DIR%database\create-database-complete.sql"
+    REM Connect to master database to create new database
+    sqlcmd -S "!DB_SERVER!" -E -d master -i "%INSTALL_DIR%database\create-database-complete.sql"
     set DB_CREATE_EXIT=!errorLevel!
 ) else (
     echo Using SQL Authentication >> setup-debug.log
     echo Using user: !DB_USER! >> setup-debug.log
-    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -i "%INSTALL_DIR%database\create-database-complete.sql"
+    REM Connect to master database to create new database
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -i "%INSTALL_DIR%database\create-database-complete.sql"
     set DB_CREATE_EXIT=!errorLevel!
 )
 
