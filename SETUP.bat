@@ -141,20 +141,30 @@ if exist "%INSTALL_DIR%config.json" (
 
 echo.
 echo Installation Directory: %INSTALL_DIR%
-echo Database Name: %DB_NAME%
-echo Database Server: %DB_SERVER%
+echo Database Name: !DB_NAME!
+echo Database Server: !DB_SERVER!
 echo Backup Directory: %BACKUP_DIR%
 echo About to show summary >> setup-debug.log
+echo Summary shown successfully >> setup-debug.log
 echo.
 
-REM Create log file
-echo Installation started at %date% %time% > "%LOG_FILE%"
+echo About to create/append to log file >> setup-debug.log
+
+REM Append to log file (it was created earlier)
+echo. >> "%LOG_FILE%"
+echo ============================================ >> "%LOG_FILE%"
+echo Installation continued at %date% %time% >> "%LOG_FILE%"
+echo ============================================ >> "%LOG_FILE%"
+
+echo Log file updated >> setup-debug.log
 
 REM Step 1: Check system requirements
 echo ============================================
 echo Step 1: Checking System Requirements
 echo ============================================
 echo.
+
+echo After Step 1 header >> setup-debug.log
 
 REM Check Windows version
 for /f "tokens=4-5 delims=. " %%i in ('ver') do set VERSION=%%i.%%j
