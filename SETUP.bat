@@ -80,9 +80,21 @@ echo Checking for SQL password... >> setup-debug.log
 
 REM Security: Require SQL 'sa' password for fresh SQL Express installs
 if not defined SQL_SA_PASSWORD (
+    echo Before password prompt >> setup-debug.log
     echo.
-    echo SECURITY: A strong SQL Server 'sa' password is required for installation.
-    set /p SQL_SA_PASSWORD=Enter SQL 'sa' password (will be used only during setup): 
+    echo ========================================
+    echo  SQL SERVER SECURITY
+    echo ========================================
+    echo.
+    echo A strong password is required for the SQL Server 'sa' account.
+    echo This will only be used during initial setup.
+    echo.
+    echo Password requirements:
+    echo  - At least 8 characters
+    echo  - Mix of uppercase, lowercase, numbers
+    echo.
+    set /p "SQL_SA_PASSWORD=Enter SQL 'sa' password: "
+    echo After password prompt >> setup-debug.log
     echo SQL password entered >> setup-debug.log
 )
 
