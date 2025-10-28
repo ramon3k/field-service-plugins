@@ -32,7 +32,14 @@ This will check for:
 1. **Download the release**
    - Go to [Releases](https://github.com/ramon3k/field-service-plugins/releases/latest)
    - Download `field-service-plugins-vX.Y.Z.zip`
-   - Extract to a folder (e.g., `C:\FieldService\`)
+   - Extract to a **local folder** (e.g., `C:\FieldService\`)
+   
+   > **⚠️ Important**: Extract to a local drive (C:\, D:\, etc.), **NOT** to:
+   > - OneDrive, Dropbox, or other cloud sync folders
+   > - Network drives or mapped drives
+   > - USB drives (can work but may be slower)
+   > 
+   > Cloud sync folders can interfere with the installer and database files.
 
 2. **Run the installer**
    - Right-click `SETUP.bat`

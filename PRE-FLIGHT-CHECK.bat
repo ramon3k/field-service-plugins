@@ -23,10 +23,10 @@ set "SQL_EXISTS=false"
 set "NODE_EXISTS=false"
 
 REM Check 1: Administrator Privileges
-echo [1] Checking Administrator Privileges...
+echo [OK] Checking Administrator Privileges...
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo    [X] NOT running as Administrator
+    echo    [OK] NOT running as Administrator
     echo    FIX: Right-click PRE-FLIGHT-CHECK.bat and select "Run as administrator"
     set "READY=false"
 ) else (
@@ -35,20 +35,20 @@ if %errorLevel% neq 0 (
 )
 echo.
 
-:: Check 2: Windows Version
-echo [2] Checking Windows Version...
+REM Check 2: Windows Version
+echo [OK] Checking Windows Version...
 for /f "tokens=4-5 delims=. " %%i in ('ver') do set VERSION=%%i.%%j
 echo    [√] Windows Version: %VERSION%
 echo.
 
 REM Check 3: Internet Connection
-echo [3] Checking Internet Connection...
+echo [OK] Checking Internet Connection...
 ping -n 1 8.8.8.8 >nul 2>&1
 if %errorLevel% equ 0 (
     echo    [√] Internet connection available
     set "HAS_INTERNET=true"
 ) else (
-    echo    [!] No internet connection detected
+    echo    [OK] No internet connection detected
     echo    NOTE: You'll need to manually download installers
     set /a WARNINGS+=1
     set "HAS_INTERNET=false"
@@ -56,11 +56,11 @@ if %errorLevel% equ 0 (
 echo.
 
 REM Check 4: Disk Space
-echo [4] Checking Disk Space...
+echo [OK] Checking Disk Space...
 set "INSTALL_DIR=%~dp0"
 for /f "tokens=3" %%a in ('dir /-c "%INSTALL_DIR%" 2^>nul ^| find "bytes free"') do set "FREESPACE=%%a"
 if not defined FREESPACE (
-    echo    [!] Could not determine free space
+    echo    [OK] Could not determine free space
     echo    NOTE: OneDrive paths may show incorrect space
     set /a WARNINGS+=1
     goto :skip_diskspace
@@ -68,13 +68,13 @@ if not defined FREESPACE (
 
 set /a FREESPACE_GB=%FREESPACE:~0,-9% 2>nul
 if errorlevel 1 (
-    echo    [!] Could not calculate disk space
+    echo    [OK] Could not calculate disk space
     set /a WARNINGS+=1
     goto :skip_diskspace
 )
 
 if !FREESPACE_GB! LSS 5 (
-    echo    [!] WARNING: Only !FREESPACE_GB!GB free - may be incorrect for OneDrive
+    echo    [OK] WARNING: Only !FREESPACE_GB!GB free - may be incorrect for OneDrive
     set /a WARNINGS+=1
 ) else (
     echo    [√] Disk space: !FREESPACE_GB!GB available
@@ -84,42 +84,42 @@ if !FREESPACE_GB! LSS 5 (
 echo.
 
 REM Check 5: SQL Server Status
-echo [5] Checking SQL Server Express...
+echo [OK] Checking SQL Server Express...
 sc query "MSSQL$SQLEXPRESS" >nul 2>&1
 if %errorLevel% equ 0 (
     echo    [√] SQL Server Express already installed
     echo    NOTE: Setup will use existing installation
     set "SQL_EXISTS=true"
 ) else (
-    echo    [!] SQL Server Express not installed
+    echo    [OK] SQL Server Express not installed
     echo    NOTE: Setup will install it - requires ~10-15 minutes
     set "SQL_EXISTS=false"
 )
 echo.
 
 REM Check 6: Node.js Status
-echo [6] Checking Node.js...
+echo [OK] Checking Node.js...
 node --version >nul 2>&1
 if %errorLevel% equ 0 (
     for /f "tokens=*" %%i in ('node --version') do set "NODE_VERSION=%%i"
     echo    [√] Node.js already installed: !NODE_VERSION!
     set "NODE_EXISTS=true"
 ) else (
-    echo    [!] Node.js not installed
+    echo    [OK] Node.js not installed
     echo    NOTE: Setup will install it
     set "NODE_EXISTS=false"
 )
 echo.
 
-:: Check 7: Required Installers (if no internet)
+REM Check 7: Required Installers (if no internet)
 if "%HAS_INTERNET%"=="false" (
-    echo [7] Checking Local Installers...
+    echo [OK] Checking Local Installers...
     
     if "%SQL_EXISTS%"=="false" (
         if exist "%INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe" (
             echo    [√] SQL Server installer found locally
         ) else (
-            echo    [X] SQL Server installer NOT found
+            echo    [OK] SQL Server installer NOT found
             echo    REQUIRED: Download from https://go.microsoft.com/fwlink/?linkid=866658
             echo    Save as: %INSTALL_DIR%installers\SQLEXPR_x64_ENU.exe
             set READY=false
@@ -130,7 +130,7 @@ if "%HAS_INTERNET%"=="false" (
         if exist "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" (
             echo    [√] Node.js installer found locally
         ) else (
-            echo    [X] Node.js installer NOT found
+            echo    [OK] Node.js installer NOT found
             echo    REQUIRED: Download from https://nodejs.org/dist/v18.18.0/node-v18.18.0-x64.msi
             echo    Save to: %INSTALL_DIR%installers\
             set READY=false
@@ -139,11 +139,11 @@ if "%HAS_INTERNET%"=="false" (
     echo.
 )
 
-:: Check 8: Port Availability
-echo [7] Checking Port Availability...
+REM Check 8: Port Availability
+echo [OK] Checking Port Availability...
 netstat -ano | findstr :5000 >nul 2>&1
 if %errorLevel% equ 0 (
-    echo    [!] WARNING: Port 5000 is in use
+    echo    [OK] WARNING: Port 5000 is in use
     echo    NOTE: You may need to change the port in config.json
     set /a WARNINGS+=1
 ) else (
@@ -151,7 +151,7 @@ if %errorLevel% equ 0 (
 )
 echo.
 
-:: Final Summary
+REM Final Summary
 echo ========================================
 echo  Pre-Flight Check Summary
 echo ========================================
@@ -179,9 +179,9 @@ if "%READY%"=="true" (
         echo 3. Select "Run as administrator"
     )
 ) else (
-    echo Status: [X] NOT READY
+    echo Status: [OK] NOT READY
     echo.
-    echo Please fix the issues marked with [X] above before running SETUP.bat
+    echo Please fix the issues marked with [OK] above before running SETUP.bat
     echo.
     if "%HAS_INTERNET%"=="false" (
         echo OFFLINE INSTALLATION REQUIREMENTS:
