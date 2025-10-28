@@ -259,8 +259,14 @@ echo About to check SQL installation >> setup-debug.log
 REM Install SQL Server Express if needed
 echo Checking SQL_INSTALLED value: !SQL_INSTALLED! >> setup-debug.log
 
-if "!SQL_INSTALLED!"=="false" (
-    echo SQL needs to be installed >> setup-debug.log
+if "!SQL_INSTALLED!"=="true" (
+    echo In SQL skip block >> setup-debug.log
+    echo [OK] Using existing SQL Server Express installation
+    echo Using existing SQL >> setup-debug.log
+    goto :skip_sql_install
+)
+
+echo SQL needs to be installed >> setup-debug.log
     echo Installing SQL Server Express 2019...
     echo This may take 10-15 minutes. Please wait...
     echo.
@@ -357,18 +363,22 @@ if "!SQL_INSTALLED!"=="false" (
         pause >nul
         exit /b 1
     )
-) else (
-    echo [OK] Using existing SQL Server Express installation
-    echo Using existing SQL >> setup-debug.log
+    echo After SQL install block >> setup-debug.log
 )
 
+:skip_sql_install
 echo SQL section completed >> setup-debug.log
 
 REM Install Node.js if needed
 echo About to check Node installation >> setup-debug.log
 
-if "!NODE_INSTALLED!"=="false" (
-    echo Node needs to be installed >> setup-debug.log
+if "!NODE_INSTALLED!"=="true" (
+    echo [OK] Using existing Node.js installation  
+    echo Using existing Node.js >> setup-debug.log
+    goto :skip_node_install
+)
+
+echo Node needs to be installed >> setup-debug.log
     echo.
     echo Installing Node.js LTS...
     echo.
@@ -455,9 +465,10 @@ if "!NODE_INSTALLED!"=="false" (
     if !errorLevel! neq 0 (
         echo [OK] Could not refresh environment - you may need to restart your terminal
     )
-) else (
-    echo [OK] Using existing Node.js installation
 )
+
+:skip_node_install
+echo Node.js section completed >> setup-debug.log
 
 echo.
 echo ============================================
