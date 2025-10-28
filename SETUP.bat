@@ -71,6 +71,10 @@ set "LOG_FILE=%INSTALL_DIR%install.log"
 echo Variables set >> setup-debug.log
 echo INSTALL_DIR=%INSTALL_DIR% >> setup-debug.log
 
+REM Ensure installers folder exists for downloads
+if not exist "%INSTALL_DIR%installers" mkdir "%INSTALL_DIR%installers"
+echo Installers folder ready >> setup-debug.log
+
 REM Create log file
 echo Installation started at %date% %time% > "%LOG_FILE%"
 echo Script location: %INSTALL_DIR% >> "%LOG_FILE%"
@@ -357,14 +361,13 @@ echo SQL needs to be installed >> setup-debug.log
         echo  - Insufficient permissions
         echo  - Conflicting SQL Server version
         echo.
-        echo Check the log file for details: %LOG_FILE%
+        echo Check the log file for details: !LOG_FILE!
         echo.
         echo Press any key to exit...
         pause >nul
         exit /b 1
     )
     echo After SQL install block >> setup-debug.log
-)
 
 :skip_sql_install
 echo SQL section completed >> setup-debug.log
@@ -465,7 +468,6 @@ echo Node needs to be installed >> setup-debug.log
     if !errorLevel! neq 0 (
         echo [OK] Could not refresh environment - you may need to restart your terminal
     )
-)
 
 :skip_node_install
 echo Node.js section completed >> setup-debug.log
@@ -574,12 +576,28 @@ REM Wait for SQL Server to be ready
 echo Waiting for SQL Server to start...
 timeout /t 10 /nobreak >nul
 
+REM Check if sqlcmd is available
+where sqlcmd >nul 2>&1
+if !errorLevel! neq 0 (
+    echo.
+    echo ============================================
+    echo  ERROR: sqlcmd not found
+    echo ============================================
+    echo.
+    echo sqlcmd is required to create the database.
+    echo Please install SQL Server Command Line Utilities from:
+    echo https://learn.microsoft.com/sql/tools/sqlcmd-utility
+    echo.
+    pause
+    exit /b 1
+)
+
 REM Create database
 echo Creating database with complete schema...
 sqlcmd -S "!DB_SERVER!" -i "%INSTALL_DIR%database\create-database-complete.sql" >nul 2>&1
 if !errorLevel! equ 0 (
     echo [OK] Database created successfully
-    echo [OK] Database creation completed >> "%LOG_FILE%"
+    echo [OK] Database creation completed >> "!LOG_FILE!"
 ) else (
     echo [OK] Database creation failed - trying alternative method
     call "%INSTALL_DIR%scripts\create-database.bat"
@@ -609,7 +627,7 @@ if !errorLevel! equ 0 (
 REM Add CompanyCode support to all tables
 echo.
 echo Adding CompanyCode multi-tenant support...
-sqlcmd -S "!DB_SERVER!" -d !DB_NAME! -i "%INSTALL_DIR%database\add-company-code-support.sql" >nul 2>&1
+sqlcmd -S "!DB_SERVER!" -d "!DB_NAME!" -i "%INSTALL_DIR%database\add-company-code-support.sql" >nul 2>&1
 if !errorLevel! equ 0 (
     echo [OK] CompanyCode columns added successfully
     echo [OK] CompanyCode support completed >> "%LOG_FILE%"
@@ -622,7 +640,7 @@ REM Create admin user from configuration wizard
 if exist "%INSTALL_DIR%database\create-admin-user.sql" (
     echo.
     echo Creating admin user from configuration...
-    sqlcmd -S "!DB_SERVER!" -d !DB_NAME! -i "%INSTALL_DIR%database\create-admin-user.sql" >nul 2>&1
+    sqlcmd -S "!DB_SERVER!" -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-admin-user.sql" >nul 2>&1
     if !errorLevel! equ 0 (
         echo [OK] Admin user created successfully
         echo [OK] Admin user creation completed >> "%LOG_FILE%"
