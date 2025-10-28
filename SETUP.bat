@@ -690,13 +690,29 @@ echo.
 if /i "!DB_AUTH!"=="Windows" (
     echo Using Windows Authentication >> setup-debug.log
     echo Connecting to !DB_SERVER! with Windows Auth >> setup-debug.log
-    sqlcmd -S "!DB_SERVER!" -E -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]; SELECT @@SERVERNAME as ServerName, DB_NAME() as CurrentDB;"
+    
+    REM First, drop the database if it exists (with file deletion)
+    sqlcmd -S "!DB_SERVER!" -E -d master -Q "IF EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') BEGIN ALTER DATABASE [!DB_NAME!] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [!DB_NAME!]; END"
+    
+    REM Wait a moment for files to be released
+    timeout /t 2 /nobreak >nul
+    
+    REM Now create fresh
+    sqlcmd -S "!DB_SERVER!" -E -d master -Q "CREATE DATABASE [!DB_NAME!]; SELECT @@SERVERNAME as ServerName, DB_NAME() as CurrentDB;"
     set DB_CREATE_EXIT=!errorLevel!
 ) else (
     echo Using SQL Authentication >> setup-debug.log
     echo Using user: !DB_USER! >> setup-debug.log
     echo Connecting to !DB_SERVER! with SQL Auth (user: !DB_USER!) >> setup-debug.log
-    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') CREATE DATABASE [!DB_NAME!]; SELECT @@SERVERNAME as ServerName, DB_NAME() as CurrentDB;"
+    
+    REM First, drop the database if it exists (with file deletion)
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "IF EXISTS (SELECT name FROM sys.databases WHERE name = '!DB_NAME!') BEGIN ALTER DATABASE [!DB_NAME!] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [!DB_NAME!]; END"
+    
+    REM Wait a moment for files to be released
+    timeout /t 2 /nobreak >nul
+    
+    REM Now create fresh
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d master -Q "CREATE DATABASE [!DB_NAME!]; SELECT @@SERVERNAME as ServerName, DB_NAME() as CurrentDB;"
     set DB_CREATE_EXIT=!errorLevel!
 )
 
