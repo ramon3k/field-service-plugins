@@ -2,8 +2,8 @@
 setlocal EnableDelayedExpansion
 cls
 
-:: Pre-Flight Check for Field Service Management System
-:: Run this before SETUP.bat to verify your system is ready
+REM Pre-Flight Check for Field Service Management System
+REM Run this before SETUP.bat to verify your system is ready
 
 echo.
 echo ========================================
@@ -16,18 +16,22 @@ echo.
 echo ========================================
 echo.
 
-set READY=true
-set WARNINGS=0
+set "READY=true"
+set "WARNINGS=0"
+set "HAS_INTERNET=false"
+set "SQL_EXISTS=false"
+set "NODE_EXISTS=false"
 
-:: Check 1: Administrator Privileges
+REM Check 1: Administrator Privileges
 echo [1] Checking Administrator Privileges...
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     echo    [X] NOT running as Administrator
-    echo    FIX: Right-click SETUP.bat and select "Run as administrator"
-    set READY=false
+    echo    FIX: Right-click PRE-FLIGHT-CHECK.bat and select "Run as administrator"
+    set "READY=false"
 ) else (
     echo    [√] Running with Administrator privileges
+)
 )
 echo.
 
@@ -37,64 +41,73 @@ for /f "tokens=4-5 delims=. " %%i in ('ver') do set VERSION=%%i.%%j
 echo    [√] Windows Version: %VERSION%
 echo.
 
-:: Check 3: Internet Connection
+REM Check 3: Internet Connection
 echo [3] Checking Internet Connection...
 ping -n 1 8.8.8.8 >nul 2>&1
 if %errorLevel% equ 0 (
     echo    [√] Internet connection available
-    set HAS_INTERNET=true
+    set "HAS_INTERNET=true"
 ) else (
     echo    [!] No internet connection detected
     echo    NOTE: You'll need to manually download installers
     set /a WARNINGS+=1
-    set HAS_INTERNET=false
+    set "HAS_INTERNET=false"
 )
 echo.
 
-:: Check 4: Disk Space
+REM Check 4: Disk Space
 echo [4] Checking Disk Space...
 set "INSTALL_DIR=%~dp0"
-for /f "tokens=3" %%a in ('dir /-c "%INSTALL_DIR%" 2^>nul ^| find "bytes free"') do set FREESPACE=%%a
+for /f "tokens=3" %%a in ('dir /-c "%INSTALL_DIR%" 2^>nul ^| find "bytes free"') do set "FREESPACE=%%a"
 if not defined FREESPACE (
     echo    [!] Could not determine free space
     echo    NOTE: OneDrive paths may show incorrect space
     set /a WARNINGS+=1
-) else (
-    set /a FREESPACE_GB=%FREESPACE:~0,-9% 2>nul
-    if !FREESPACE_GB! LSS 5 (
-        echo    [!] WARNING: Only !FREESPACE_GB!GB free (may be incorrect for OneDrive)
-        set /a WARNINGS+=1
-    ) else (
-        echo    [√] Disk space: !FREESPACE_GB!GB available
-    )
+    goto :skip_diskspace
 )
+
+set /a FREESPACE_GB=%FREESPACE:~0,-9% 2>nul
+if errorlevel 1 (
+    echo    [!] Could not calculate disk space
+    set /a WARNINGS+=1
+    goto :skip_diskspace
+)
+
+if !FREESPACE_GB! LSS 5 (
+    echo    [!] WARNING: Only !FREESPACE_GB!GB free - may be incorrect for OneDrive
+    set /a WARNINGS+=1
+) else (
+    echo    [√] Disk space: !FREESPACE_GB!GB available
+)
+
+:skip_diskspace
 echo.
 
-:: Check 5: SQL Server Status
+REM Check 5: SQL Server Status
 echo [5] Checking SQL Server Express...
 sc query "MSSQL$SQLEXPRESS" >nul 2>&1
 if %errorLevel% equ 0 (
     echo    [√] SQL Server Express already installed
     echo    NOTE: Setup will use existing installation
-    set SQL_EXISTS=true
+    set "SQL_EXISTS=true"
 ) else (
     echo    [!] SQL Server Express not installed
-    echo    NOTE: Setup will install it (requires ~10-15 minutes)
-    set SQL_EXISTS=false
+    echo    NOTE: Setup will install it - requires ~10-15 minutes
+    set "SQL_EXISTS=false"
 )
 echo.
 
-:: Check 6: Node.js Status
+REM Check 6: Node.js Status
 echo [6] Checking Node.js...
 node --version >nul 2>&1
 if %errorLevel% equ 0 (
-    for /f "tokens=*" %%i in ('node --version') do set NODE_VERSION=%%i
+    for /f "tokens=*" %%i in ('node --version') do set "NODE_VERSION=%%i"
     echo    [√] Node.js already installed: !NODE_VERSION!
-    set NODE_EXISTS=true
+    set "NODE_EXISTS=true"
 ) else (
     echo    [!] Node.js not installed
     echo    NOTE: Setup will install it
-    set NODE_EXISTS=false
+    set "NODE_EXISTS=false"
 )
 echo.
 
