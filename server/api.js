@@ -51,7 +51,7 @@ const dbConfig = {
   password: process.env.DB_PASSWORD,
   options: {
     encrypt: true, // Required for Azure SQL
-    trustServerCertificate: false,
+    trustServerCertificate: true, // Allow self-signed certificates for local SQL Server
     enableArithAbort: true
   }
 };

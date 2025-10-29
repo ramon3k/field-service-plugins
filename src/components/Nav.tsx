@@ -76,8 +76,8 @@ export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCou
       // SystemAdmin can see everything
       return ['Tickets','Map','Calendar','Reports','Closed','Requests','Users','Plugins','Activity','Customers','Sites','Licenses','Vendors']
     } else if (currentUser.role === 'Admin') {
-      // Admin can see everything except Plugins
-      return ['Tickets','Map','Calendar','Reports','Closed','Requests','Users','Activity','Customers','Sites','Licenses','Vendors']
+      // Admin can see everything including Plugins
+      return ['Tickets','Map','Calendar','Reports','Closed','Requests','Users','Plugins','Activity','Customers','Sites','Licenses','Vendors']
     } else if (currentUser.role === 'Coordinator') {
       return ['Tickets','Map','Calendar','Reports','Closed','Requests','Activity','Customers','Sites','Licenses','Vendors']
     } else if (currentUser.role === 'Technician') {

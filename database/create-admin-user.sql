@@ -14,7 +14,7 @@ BEGIN
         'admin@dcpsp.com',
         'Joseph Ramon SR',
         'Admin',
-        'bKE9UspwyIPg8LsQHkJaiehiTeUdstI5JZOvaoQRgJA=',
+        'YWJjMTIz',
         1,
         GETDATE()
     );
@@ -26,7 +26,7 @@ BEGIN
     UPDATE Users
     SET Email = 'admin@dcpsp.com',
         FullName = 'Joseph Ramon SR',
-        PasswordHash = 'bKE9UspwyIPg8LsQHkJaiehiTeUdstI5JZOvaoQRgJA=',
+        PasswordHash = 'YWJjMTIz',
         IsActive = 1
     WHERE Username = 'admin';
     PRINT 'Admin user updated successfully';
@@ -43,7 +43,7 @@ BEGIN
         'system@Knight Industries.com',
         'System',
         'Admin',
-        'bKE9UspwyIPg8LsQHkJaiehiTeUdstI5JZOvaoQRgJA=',
+        'YWJjMTIz',
         1,
         GETDATE()
     );

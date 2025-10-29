@@ -67,6 +67,11 @@ set "INSTALL_DIR=%~dp0"
 set "APP_NAME=Field Service Management System"
 set "SERVICE_NAME=FieldServiceAPI"
 set "LOG_FILE=%INSTALL_DIR%install.log"
+set "BACKUP_DIR=%INSTALL_DIR%backups"
+
+REM Generate random secrets for session and JWT
+for /f %%i in ('powershell -Command "[guid]::NewGuid().ToString() -replace '-','' + [guid]::NewGuid().ToString() -replace '-',''"') do set "SESSION_SECRET=%%i"
+for /f %%i in ('powershell -Command "[guid]::NewGuid().ToString() -replace '-','' + [guid]::NewGuid().ToString() -replace '-',''"') do set "JWT_SECRET=%%i"
 
 echo Variables set >> setup-debug.log
 echo INSTALL_DIR=%INSTALL_DIR% >> setup-debug.log
@@ -734,20 +739,28 @@ if /i "!DB_AUTH!"=="Windows" (
 
 set /p DB_EXISTS=<temp_dbcheck.txt
 set "DB_EXISTS=!DB_EXISTS: =!"
+set "DB_EXISTS=!DB_EXISTS:	=!"
 del temp_dbcheck.txt 2>nul
 
-echo Database exists check result: !DB_EXISTS! >> setup-debug.log
+echo Database exists check result: [!DB_EXISTS!] >> setup-debug.log
 
-if "!DB_EXISTS!"=="1" (
+REM Default to error
+set DB_CREATE_EXIT=1
+
+REM Check if database exists
+if "!DB_EXISTS!"=="1" set DB_CREATE_EXIT=0
+
+echo DB_CREATE_EXIT is now: !DB_CREATE_EXIT! >> setup-debug.log
+
+if "!DB_CREATE_EXIT!"=="0" (
     echo [OK] Database created/verified successfully
-    set DB_CREATE_EXIT=0
-) else (
-    set DB_CREATE_EXIT=1
+    goto :db_create_success
 )
 
-if !DB_CREATE_EXIT! neq 0 (
+REM Database creation failed
+REM Database creation failed
     echo [ERROR] Failed to create database
-    echo Database creation failed with exit code: !DB_CREATE_EXIT! >> setup-debug.log
+    echo Database creation failed >> setup-debug.log
     echo.
     echo ============================================
     echo  DATABASE CREATION FAILED
@@ -764,38 +777,51 @@ if !DB_CREATE_EXIT! neq 0 (
     echo.
     pause
     exit /b 1
-)
 
+:db_create_success
 echo [OK] Database created/verified
 
 REM Step 2: Create tables and schema
 echo Step 2: Creating tables and schema...
 echo Creating schema in !DB_NAME! >> setup-debug.log
+echo.
 
-REM The SQL file has CREATE DATABASE at the top, but we need to skip that
-REM since we already created the database. We'll execute it anyway since
-REM it has IF NOT EXISTS checks, but connect directly to our database
+REM Connect to our database and run the schema creation script
 if /i "!DB_AUTH!"=="Windows" (
-    REM Use -d to connect to our database, the script will skip the CREATE DATABASE
-    REM since it already exists and will use the tables section
-    sqlcmd -S "!DB_SERVER!" -E -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql" -I
+    echo Running schema creation script...
+    sqlcmd -S "!DB_SERVER!" -E -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql"
     set SCHEMA_EXIT=!errorLevel!
 ) else (
-    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql" -I
+    echo Running schema creation script...
+    sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d "!DB_NAME!" -i "%INSTALL_DIR%database\create-database-complete.sql"
     set SCHEMA_EXIT=!errorLevel!
 )
 
+echo.
 echo Schema creation exit code: !SCHEMA_EXIT! >> setup-debug.log
 
 if !SCHEMA_EXIT! equ 0 (
     echo [OK] Database schema created successfully
     echo [OK] Database creation completed >> "!LOG_FILE!"
 ) else (
-    echo [OK] Schema creation had issues - trying alternative method
-    echo Trying create-database.bat script >> setup-debug.log
-    call "%INSTALL_DIR%scripts\create-database.bat"
-    if !errorLevel! equ 0 (
-        echo [OK] Database created successfully
+    echo [WARNING] Schema creation had exit code: !SCHEMA_EXIT!
+    echo Verifying tables were created...
+    
+    REM Check if tables actually exist
+    if /i "!DB_AUTH!"=="Windows" (
+        sqlcmd -S "!DB_SERVER!" -E -d "!DB_NAME!" -Q "SELECT COUNT(*) as TableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'" -h -1 -W > temp_tablecheck.txt 2>&1
+    ) else (
+        sqlcmd -S "!DB_SERVER!" -U "!DB_USER!" -P "!SQL_SA_PASSWORD!" -d "!DB_NAME!" -Q "SELECT COUNT(*) as TableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'" -h -1 -W > temp_tablecheck.txt 2>&1
+    )
+    
+    set /p TABLE_COUNT=<temp_tablecheck.txt
+    set "TABLE_COUNT=!TABLE_COUNT: =!"
+    del temp_tablecheck.txt 2>nul
+    
+    echo Table count: !TABLE_COUNT! >> setup-debug.log
+    
+    if !TABLE_COUNT! gtr 0 (
+        echo [OK] Found !TABLE_COUNT! tables - schema created successfully
         echo [OK] Database creation completed >> "!LOG_FILE!"
     ) else (
         echo.
@@ -803,7 +829,7 @@ if !SCHEMA_EXIT! equ 0 (
         echo  SCHEMA CREATION FAILED
         echo ============================================
         echo.
-        echo Could not create the database schema.
+        echo No tables were created in the database.
         echo Check setup-debug.log for details
         echo.
         pause
@@ -930,11 +956,21 @@ echo Step 7: Final Configuration
 echo ============================================
 echo.
 
-REM Set up environment file
-if not exist "%INSTALL_DIR%server\.env" (
-    copy "%INSTALL_DIR%server\.env.example" "%INSTALL_DIR%server\.env" >nul
-    echo [OK] Environment file created
-)
+REM Create environment file with actual configuration
+echo Creating server environment file...
+(
+echo DB_SERVER=!DB_SERVER!
+echo DB_NAME=!DB_NAME!
+echo DB_USER=!DB_USER!
+echo DB_PASSWORD=!SQL_SA_PASSWORD!
+echo PORT=5000
+echo NODE_ENV=production
+echo SESSION_SECRET=!SESSION_SECRET!
+echo UPLOAD_DIR=./uploads
+echo MAX_FILE_SIZE=10485760
+echo JWT_SECRET=!JWT_SECRET!
+) > "%INSTALL_DIR%server\.env"
+echo [OK] Environment file created
 
 REM Set permissions
 echo Setting file permissions...
@@ -955,20 +991,49 @@ if !errorLevel! equ 0 (
     echo WARNING: Backup scheduling failed >> "%LOG_FILE%"
 )
 
+REM Create START.bat in the installation directory
+echo.
+echo Creating startup script...
+(
+echo @echo off
+echo REM Start Field Service Management System
+echo.
+echo echo Starting Field Service Management System...
+echo.
+echo set "INSTALL_DIR=%%~dp0"
+echo.
+echo REM Start the API server in a new window
+echo echo Starting API server on port 5000...
+echo start "Field Service API" cmd /k "cd /d %%INSTALL_DIR%%server && node api.cjs"
+echo.
+echo REM Wait a moment for the API to start
+echo timeout /t 3 /nobreak ^>nul
+echo.
+echo REM Start the Vite dev server in a new window
+echo echo Starting client application on port 5173...
+echo start "Field Service Client" cmd /k "cd /d %%INSTALL_DIR%% && npm run dev"
+echo.
+echo echo.
+echo echo Two windows have opened:
+echo echo  1. API Server - port 5000
+echo echo  2. Client Application - port 5173
+echo echo.
+echo echo The application will be available at: http://localhost:5173
+echo echo.
+echo echo Press any key to open in browser...
+echo pause ^>nul
+echo start http://localhost:5173
+) > "%INSTALL_DIR%START.bat"
+echo [OK] Startup script created
+
 echo.
 echo ============================================
 echo Installation Complete!
 echo ============================================
 echo.
 
-REM Test the installation
-echo Testing installation...
-cd /d "%INSTALL_DIR%server"
-start /min cmd /c "node api-minimal.js"
-timeout /t 5 /nobreak >nul
-
-REM Check if service is responding
-powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:5000/api/test' -TimeoutSec 10; Write-Host '[OK] Application test passed' } catch { Write-Host '[OK] Application test failed - may need manual startup' }"
+REM Check if service is responding (API might not be running yet)
+powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:5173' -TimeoutSec 10; Write-Host '[OK] Application test passed' } catch { Write-Host '[OK] Application test failed - may need manual startup' }"
 
 echo.
 echo Installation Summary:
@@ -978,8 +1043,9 @@ echo Database Name: !DB_NAME!
 echo Backup Directory: %BACKUP_DIR%
 echo.
 echo Access Points:
-echo  Main Application: http://localhost:5000
-echo  Service Requests: http://localhost:5000/service-request.html
+echo  Main Application: http://localhost:5173
+echo  Service Requests: http://localhost:5173/service-request.html
+echo  API Server: http://localhost:5000/api
 echo.
 echo Login Credentials:
 echo  Username: (as configured in wizard)
@@ -1000,12 +1066,14 @@ echo Installation completed successfully at %date% %time% >> "%LOG_FILE%"
 echo Installation log saved to: %LOG_FILE%
 
 echo Next Steps:
-echo 1. Open your web browser
-echo 2. Navigate to: http://localhost:5000
-echo 3. Login with the credentials you configured
-echo 4. Test file attachments on a ticket
-echo 5. Try the public service request form at /service-request.html
-echo 6. Configure timezone preferences in Activity Log
+echo 1. Run START.bat to launch the application
+echo    (This will start both the API server and client)
+echo 2. Or manually run: npm run dev
+echo 3. Navigate to: http://localhost:5173
+echo 4. Login with the credentials you configured
+echo 5. Test file attachments on a ticket
+echo 6. Try the public service request form at /service-request.html
+echo 7. Configure timezone preferences in Activity Log
 echo.
 
 echo For support, see documentation files:
@@ -1015,9 +1083,13 @@ echo  - INSTALLATION-CHECKLIST.md (verification steps)
 echo.
 
 REM Ask to start the application
-choice /c YN /m "Would you like to open the application in your browser now"
+choice /c YN /m "Would you like to start the application now"
 if !errorLevel! equ 1 (
-    start http://localhost:5000
+    call "%INSTALL_DIR%START.bat"
+) else (
+    echo.
+    echo To start the application later, run: START.bat
+    echo.
 )
 
 echo.

@@ -44,7 +44,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 app.set('trust proxy', 1); // for secure cookies behind proxies
 app.use(express.json());
 
@@ -846,21 +845,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     console.log(`🔵 Login attempt: ${normalizedUsername} with company code: ${normalizedCompanyCode}`);
 
-    // Confirm company exists and is active
-    const companyCheck = await pool.request()
-      .input('companyCode', sql.VarChar, normalizedCompanyCode)
-      .query(`
-        SELECT CompanyCode, CompanyName, DisplayName
-        FROM Companies
-        WHERE UPPER(CompanyCode) = @companyCode AND IsActive = 1
-      `);
-
-    if (companyCheck.recordset.length === 0) {
-      console.log('❌ Company not found or inactive');
-      return res.status(404).json({ error: 'Company not found or inactive' });
-    }
-
-    // Query user by username and apply company check in application layer
+    // Query user by username (CompanyCode field still exists in Users table)
     const result = await pool.request()
       .input('username', sql.NVarChar, normalizedUsername)
       .query(`
@@ -869,10 +854,10 @@ app.post('/api/auth/login', async (req, res) => {
         WHERE Username = @username AND IsActive = 1
       `);
 
-    console.log(`?f�� Query result: Found ${result.recordset.length} active user(s) with username`);
+    console.log(`📊 Query result: Found ${result.recordset.length} active user(s) with username`);
 
     if (result.recordset.length === 0) {
-      console.log('?�� User not found or inactive');
+      console.log('❌ User not found or inactive');
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
@@ -883,13 +868,13 @@ app.post('/api/auth/login', async (req, res) => {
 
     if (matchingUsers.length === 0) {
       const availableCodes = [...new Set(result.recordset.map(row => (row.CompanyCode || '').trim().toUpperCase()))];
-      console.log('?�� No user/company match found', { normalizedCompanyCode, availableCodes });
+      console.log('❌ No user/company match found', { normalizedCompanyCode, availableCodes });
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
     const user = matchingUsers[0];
     const userCompanyCode = (user.CompanyCode || '').trim().toUpperCase();
-    console.log('?f�� Company code comparison:', {
+    console.log('📊 Company code comparison:', {
       normalizedCompanyCode,
       userCompanyCode,
       originalUserCompanyCode: user.CompanyCode,
