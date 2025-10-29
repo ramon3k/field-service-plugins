@@ -520,29 +520,57 @@ module.exports = {
       console.log(`⏰ Time Clock Plugin: Installing for tenant ${tenantId}`);
       
       try {
-        // Create TimeClockEntries table
+        // Create TimeClockEntries table (matching database schema exactly)
         await pool.request()
           .query(`
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TimeClockEntries')
             BEGIN
               CREATE TABLE TimeClockEntries (
-                id INT IDENTITY PRIMARY KEY,
-                companyCode NVARCHAR(50) NOT NULL,
-                technicianId NVARCHAR(100) NOT NULL,
-                technicianName NVARCHAR(200),
-                ticketId NVARCHAR(50),
-                clockInTime DATETIME NOT NULL,
-                clockOutTime DATETIME,
-                totalMinutes INT,
-                createdAt DATETIME DEFAULT GETUTCDATE(),
-                CONSTRAINT FK_TimeClockEntries_Tickets FOREIGN KEY (ticketId, companyCode)
-                  REFERENCES Tickets(TicketID, CompanyCode) ON DELETE CASCADE
+                EntryID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY DEFAULT NEWID(),
+                CompanyCode NVARCHAR(50) NOT NULL,
+                TechnicianID NVARCHAR(100) NOT NULL,
+                TechnicianName NVARCHAR(200),
+                ClockInTime DATETIME2(7) NOT NULL,
+                ClockOutTime DATETIME2(7),
+                TotalHours DECIMAL(5, 2),
+                Notes NVARCHAR(MAX),
+                Location NVARCHAR(500),
+                ClockInMethod NVARCHAR(50) DEFAULT 'Manual',
+                ClockOutMethod NVARCHAR(50),
+                Status NVARCHAR(20) DEFAULT 'Active',
+                CreatedAt DATETIME2(7) DEFAULT GETDATE(),
+                UpdatedAt DATETIME2(7) DEFAULT GETDATE(),
+                TicketID NVARCHAR(50),
+                CONSTRAINT FK_TimeClockEntries_Company FOREIGN KEY (CompanyCode)
+                  REFERENCES Companies(CompanyCode) ON DELETE CASCADE
               );
               
-              CREATE INDEX IX_TimeClockEntries_CompanyCode ON TimeClockEntries(companyCode);
-              CREATE INDEX IX_TimeClockEntries_TechnicianId ON TimeClockEntries(technicianId);
-              CREATE INDEX IX_TimeClockEntries_TicketId ON TimeClockEntries(ticketId);
-              CREATE INDEX IX_TimeClockEntries_ClockInTime ON TimeClockEntries(clockInTime);
+              CREATE INDEX IX_TimeClockEntries_Company ON TimeClockEntries(CompanyCode, ClockInTime DESC);
+              CREATE INDEX IX_TimeClockEntries_Technician ON TimeClockEntries(TechnicianID, ClockInTime DESC);
+              CREATE INDEX IX_TimeClockEntries_Ticket ON TimeClockEntries(TicketID, ClockInTime DESC);
+              CREATE INDEX IX_TimeClockEntries_Status ON TimeClockEntries(Status, CompanyCode);
+            END
+          `);
+        
+        // Create TimeClockBreaks table
+        await pool.request()
+          .query(`
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TimeClockBreaks')
+            BEGIN
+              CREATE TABLE TimeClockBreaks (
+                BreakID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY DEFAULT NEWID(),
+                EntryID UNIQUEIDENTIFIER NOT NULL,
+                BreakType NVARCHAR(50) DEFAULT 'Lunch',
+                BreakStartTime DATETIME2(7) NOT NULL,
+                BreakEndTime DATETIME2(7),
+                BreakDuration INT,
+                Notes NVARCHAR(500),
+                CreatedAt DATETIME2(7) DEFAULT GETDATE(),
+                CONSTRAINT FK_TimeClockBreaks_Entry FOREIGN KEY (EntryID)
+                  REFERENCES TimeClockEntries(EntryID) ON DELETE CASCADE
+              );
+              
+              CREATE INDEX IX_TimeClockBreaks_Entry ON TimeClockBreaks(EntryID, BreakStartTime);
             END
           `);
         
@@ -564,7 +592,7 @@ module.exports = {
         await pool.request()
           .input('companyCode', tenantId)
           .query(`
-            DELETE FROM TimeClockEntries WHERE companyCode = @companyCode;
+            DELETE FROM TimeClockEntries WHERE CompanyCode = @companyCode;
           `);
         
         console.log(`✅ Time Clock Plugin: Data cleaned up for ${tenantId}`);

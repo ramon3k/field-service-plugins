@@ -1,0 +1,21 @@
+Step 5: Database Setup
+============================================
+
+Waiting for SQL Server to start...
+Creating database...
+Step 1: Creating database FieldServiceDB...
+About to create database on server: DESKTOP-Q0TCLBU\SQLEXPRESS
+
+The process cannot access the file because it is being used by another process.
+The process cannot access the file because it is being used by another process.
+ServerName                                                                                                                       CurrentDB                                                                                                      
+-------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------
+DESKTOP-Q0TCLBU\SQLEXPRESS                                                                                                       master                                                                                                         
+
+(1 rows affected)
+2. Server name is correct: DESKTOP-Q0TCLBU\SQLEXPRESS
+3. Authentication works (check config.json)
+
+Check setup-debug.log for details
+
+Press any key to continue . . .

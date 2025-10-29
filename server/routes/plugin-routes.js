@@ -227,6 +227,63 @@ function initializePluginRoutes(app, pluginManager, pool) {
   });
 
   // =============================================
+  // DELETE /api/plugins/:pluginId
+  // Delete a plugin completely from the system
+  // (Admin only - removes from GlobalPlugins)
+  // =============================================
+  router.delete('/:pluginId', async (req, res) => {
+    try {
+      const { pluginId } = req.params;
+
+      // Check if plugin is installed for any tenant
+      const installCheck = await pool.request()
+        .input('pluginId', pluginId)
+        .query('SELECT COUNT(*) as count FROM TenantPluginInstallations WHERE pluginId = @pluginId');
+
+      if (installCheck.recordset[0].count > 0) {
+        return res.status(400).json({ 
+          error: 'Plugin is still installed for one or more companies. Uninstall from all companies first.' 
+        });
+      }
+
+      // Get plugin info before deleting
+      const pluginInfo = await pool.request()
+        .input('pluginId', pluginId)
+        .query('SELECT name, displayName FROM GlobalPlugins WHERE id = @pluginId');
+
+      if (pluginInfo.recordset.length === 0) {
+        return res.status(404).json({ error: 'Plugin not found' });
+      }
+
+      const pluginName = pluginInfo.recordset[0].name;
+      const pluginDisplayName = pluginInfo.recordset[0].displayName;
+
+      // Delete from GlobalPlugins (cascade will handle related tables)
+      await pool.request()
+        .input('pluginId', pluginId)
+        .query('DELETE FROM GlobalPlugins WHERE id = @pluginId');
+
+      // Delete plugin files from server/plugins/{name}/
+      const fs = require('fs');
+      const pluginDir = path.join(__dirname, '..', 'plugins', pluginName);
+      if (fs.existsSync(pluginDir)) {
+        fs.rmSync(pluginDir, { recursive: true, force: true });
+        console.log(`🗑️ Deleted plugin directory: ${pluginDir}`);
+      }
+
+      console.log(`✅ Deleted plugin: ${pluginDisplayName} (${pluginName})`);
+
+      res.json({ 
+        success: true, 
+        message: `Plugin "${pluginDisplayName}" deleted successfully` 
+      });
+    } catch (error) {
+      console.error('Error deleting plugin:', error);
+      res.status(500).json({ error: 'Failed to delete plugin' });
+    }
+  });
+
+  // =============================================
   // POST /api/plugins/:pluginId/enable
   // Enable a plugin
   // =============================================

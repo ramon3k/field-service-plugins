@@ -107,7 +107,7 @@ export default function PluginManagerPage() {
   }
 
   const handleUninstall = async (pluginId: string) => {
-    if (!confirm('Are you sure you want to uninstall this plugin? This will remove all plugin data.')) {
+    if (!confirm('Are you sure you want to uninstall this plugin? This will remove all plugin data for this company.')) {
       return
     }
 
@@ -126,6 +126,37 @@ export default function PluginManagerPage() {
       alert('Plugin uninstalled successfully! Please refresh the page to see changes.')
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to uninstall plugin')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleDelete = async (pluginId: string, pluginName: string) => {
+    if (!confirm(`⚠️ DELETE PLUGIN FROM SYSTEM?\n\nThis will permanently remove "${pluginName}" from the system.\n\nThis action cannot be undone!\n\nType YES to confirm.`)) {
+      return
+    }
+
+    const confirmation = prompt('Type "DELETE" to confirm:')
+    if (confirmation !== 'DELETE') {
+      alert('Deletion cancelled.')
+      return
+    }
+
+    try {
+      setActionLoading(pluginId)
+      const response = await fetch(`${API_BASE}/plugins/${pluginId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete plugin')
+      }
+
+      await fetchPlugins()
+      alert('Plugin deleted successfully from the system!')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete plugin')
     } finally {
       setActionLoading(null)
     }
@@ -340,6 +371,25 @@ export default function PluginManagerPage() {
                       Uninstall
                     </button>
                   </>
+                )}
+                {!plugin.isInstalled && (
+                  <button
+                    onClick={() => handleDelete(plugin.PluginID, plugin.displayName)}
+                    disabled={actionLoading === plugin.PluginID}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#991b1b',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: actionLoading === plugin.PluginID ? 'wait' : 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
+                    title="Permanently delete this plugin from the system"
+                  >
+                    🗑️ Delete
+                  </button>
                 )}
               </div>
             </div>

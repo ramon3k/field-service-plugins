@@ -2,8 +2,8 @@
 setlocal EnableDelayedExpansion
 cls
 
-:: Field Service Management System - Update Script
-:: Updates existing installation with new features and database schema
+REM Field Service Management System - Update Script
+REM Updates existing installation with new features and database schema
 
 echo.
 echo ========================================
@@ -12,7 +12,7 @@ echo  Update Script
 echo ========================================
 echo.
 
-:: Check if running as Administrator
+REM Check if running as Administrator
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     echo ERROR: This script must be run as Administrator.
@@ -28,7 +28,7 @@ if %errorLevel% neq 0 (
 echo [√] Running with Administrator privileges
 echo.
 
-:: Set variables
+REM Set variables
 set "INSTALL_DIR=%~dp0"
 set "DB_NAME=FieldServiceDB"
 set "LOG_FILE=%INSTALL_DIR%update.log"
@@ -37,7 +37,7 @@ echo Update started at %date% %time% > "%LOG_FILE%"
 echo Installation Directory: %INSTALL_DIR%
 echo.
 
-:: Create backup before updating
+REM Create backup before updating
 echo ========================================
 echo Step 1: Creating Backup
 echo ========================================
@@ -55,7 +55,7 @@ if !errorLevel! equ 0 (
     if !errorLevel! equ 2 exit /b 1
 )
 
-:: Stop running services
+REM Stop running services
 echo.
 echo ========================================
 echo Step 2: Stopping Services
@@ -71,7 +71,7 @@ if !errorLevel! equ 0 (
 )
 timeout /t 2 /nobreak >nul
 
-:: Update Node dependencies
+REM Update Node dependencies
 echo.
 echo ========================================
 echo Step 3: Updating Dependencies
@@ -104,7 +104,7 @@ if exist package.json (
     )
 )
 
-:: Update database schema
+REM Update database schema
 echo.
 echo ========================================
 echo Step 4: Updating Database Schema
@@ -120,7 +120,7 @@ echo  • Activity Log timezone support
 echo  • Enhanced indexes for performance
 echo.
 
-:: Run database update script
+REM Run database update script
 sqlcmd -S localhost\SQLEXPRESS -d %DB_NAME% -E -i "%INSTALL_DIR%database\update-schema.sql" 2>nul
 if !errorLevel! equ 0 (
     echo [√] Database schema updated successfully
@@ -130,7 +130,7 @@ if !errorLevel! equ 0 (
     echo INFO: Database update issues (may be normal) >> "%LOG_FILE%"
 )
 
-:: Create uploads directory
+REM Create uploads directory
 echo.
 echo ========================================
 echo Step 5: Creating Upload Directories
@@ -144,11 +144,11 @@ if not exist "%INSTALL_DIR%server\uploads" (
     echo [√] Uploads directory already exists
 )
 
-:: Set permissions on uploads directory
+REM Set permissions on uploads directory
 icacls "%INSTALL_DIR%server\uploads" /grant Users:F /T >nul 2>&1
 echo [√] Upload directory permissions configured
 
-:: Update public files
+REM Update public files
 echo.
 echo ========================================
 echo Step 6: Updating Public Files
@@ -161,7 +161,7 @@ if exist "%INSTALL_DIR%public\service-request.html" (
     echo [!] Service request form not found - may need manual copy
 )
 
-:: Rebuild client application
+REM Rebuild client application
 echo.
 echo ========================================
 echo Step 7: Rebuilding Client
@@ -181,7 +181,7 @@ if exist "package.json" (
     )
 )
 
-:: Update configuration
+REM Update configuration
 echo.
 echo ========================================
 echo Step 8: Updating Configuration
@@ -197,7 +197,7 @@ if not exist "%INSTALL_DIR%server\.env" (
     echo [√] Environment file already exists
 )
 
-:: Configure firewall (if needed)
+REM Configure firewall (if needed)
 echo.
 echo Checking firewall configuration...
 netsh advfirewall firewall show rule name="Field Service API" >nul 2>&1
@@ -227,7 +227,7 @@ echo.
 echo Update log saved to: %LOG_FILE%
 echo.
 
-:: Ask to restart
+REM Ask to restart
 choice /c YN /m "Would you like to start the application now"
 if !errorLevel! equ 1 (
     echo.

@@ -1,8 +1,8 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-:: Uninstall Field Service Management System v2.0
-:: Removes application, shortcuts, and optionally database
+REM Uninstall Field Service Management System v2.0
+REM Removes application, shortcuts, and optionally database
 
 echo.
 echo ==========================================
@@ -29,7 +29,7 @@ echo Step 1: Creating Final Backup
 echo ==========================================
 echo.
 
-:: Create final backup before uninstall
+REM Create final backup before uninstall
 echo Creating final backup of your data...
 if exist "%INSTALL_DIR%scripts\backup-database.bat" (
     call "%INSTALL_DIR%scripts\backup-database.bat"
@@ -44,18 +44,18 @@ echo Step 2: Stopping Services
 echo ==========================================
 echo.
 
-:: Stop any running application processes
+REM Stop any running application processes
 echo Stopping application processes...
 taskkill /f /im node.exe >nul 2>&1
 taskkill /f /im "Field Service*" >nul 2>&1
 echo [√] Application processes stopped
 
-:: Remove Windows service if it exists
+REM Remove Windows service if it exists
 echo Removing Windows service...
 sc delete "FieldServiceAPI" >nul 2>&1
 echo [√] Windows service removed (if it existed)
 
-:: Remove scheduled backup task
+REM Remove scheduled backup task
 echo Removing scheduled tasks...
 schtasks /delete /tn "Field Service Backup" /f >nul 2>&1
 echo [√] Scheduled backup task removed
@@ -66,13 +66,13 @@ echo Step 3: Removing Shortcuts
 echo ==========================================
 echo.
 
-:: Remove desktop shortcuts
+REM Remove desktop shortcuts
 if exist "%USERPROFILE%\Desktop\Field Service System.lnk" (
     del "%USERPROFILE%\Desktop\Field Service System.lnk"
     echo [√] Desktop shortcut removed
 )
 
-:: Remove Start Menu shortcuts
+REM Remove Start Menu shortcuts
 if exist "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Field Service System" (
     rmdir /s /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Field Service System"
     echo [√] Start Menu shortcuts removed
@@ -84,7 +84,7 @@ echo Step 4: Removing Firewall Rules
 echo ==========================================
 echo.
 
-:: Remove firewall rules
+REM Remove firewall rules
 netsh advfirewall firewall delete rule name="Field Service API" >nul 2>&1
 echo [√] Firewall rules removed
 
@@ -140,7 +140,7 @@ echo Step 6: Removing Application Files
 echo ==========================================
 echo.
 
-:: Remove application files (but not the uninstaller itself)
+REM Remove application files (but not the uninstaller itself)
 echo Removing application files...
 
 if exist "%INSTALL_DIR%server\uploads" (
@@ -194,7 +194,7 @@ if exist "%INSTALL_DIR%scripts" (
     echo [√] Scripts folder will be removed after uninstaller exits
 )
 
-:: Remove configuration files
+REM Remove configuration files
 if exist "%INSTALL_DIR%config.json" (
     echo Removing configuration files...
     choice /c YN /m "Remove config.json (contains your settings)"
@@ -211,7 +211,7 @@ if exist "%INSTALL_DIR%server\.env" (
     echo [√] Environment file removed
 )
 
-:: Remove other files
+REM Remove other files
 del "%INSTALL_DIR%*.md" >nul 2>&1
 del "%INSTALL_DIR%*.txt" >nul 2>&1
 del "%INSTALL_DIR%*.json" >nul 2>&1
@@ -285,7 +285,7 @@ echo.
 echo Press any key to finish and remove remaining files...
 pause >nul
 
-:: Self-destruct: remove the scripts folder and uninstaller
+REM Self-destruct: remove the scripts folder and uninstaller
 cd /d "%TEMP%"
 (
 echo @echo off
