@@ -40,6 +40,26 @@ BEGIN
 END
 GO
 
+-- Companies table
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Companies')
+BEGIN
+    CREATE TABLE Companies (
+        CompanyID INT IDENTITY(1,1) PRIMARY KEY,
+        CompanyCode NVARCHAR(50) NOT NULL UNIQUE,
+        CompanyName NVARCHAR(255) NOT NULL,
+        DisplayName NVARCHAR(255),
+        ContactEmail NVARCHAR(255),
+        ContactPhone NVARCHAR(50),
+        Address NVARCHAR(500),
+        IsActive BIT DEFAULT 1,
+        AllowServiceRequests BIT DEFAULT 1,
+        CreatedAt DATETIME DEFAULT GETDATE(),
+        UpdatedAt DATETIME DEFAULT GETDATE()
+    );
+    PRINT 'Companies table created';
+END
+GO
+
 -- Customers table
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Customers')
 BEGIN
@@ -355,6 +375,7 @@ PRINT 'Database: FieldServiceDB';
 PRINT '========================================';
 PRINT 'Tables created:';
 PRINT '  - Users (with vendor support)';
+PRINT '  - Companies (multi-company support)';
 PRINT '  - Customers';
 PRINT '  - Sites';
 PRINT '  - Assets';
@@ -366,10 +387,14 @@ PRINT '  - AuditTrail';
 PRINT '  - ServiceRequests (public submission)';
 PRINT '  - ActivityLog (with timezone support)';
 PRINT '  - Attachments (file uploads)';
-PRINT '  - GlobalPlugins';
-PRINT '  - PluginSettings';
-PRINT '  - PluginAPIEndpoints';
-PRINT '  - PluginHooks';
+PRINT '  - GlobalPlugins (plugin registry)';
+PRINT '  - PluginAPIEndpoints (plugin API routes)';
+PRINT '  - SystemHooks (system extension points)';
+PRINT '  - PluginHookRegistrations (plugin hook handlers)';
+PRINT '  - PluginMenuItems (plugin UI menu items)';
+PRINT '  - PluginDatabaseObjects (plugin schema tracking)';
+PRINT '  - PluginActivityLog (plugin usage tracking)';
+PRINT '  - TenantPluginInstallations (plugin installations)';
 PRINT '========================================';
 GO
 
@@ -381,42 +406,33 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'GlobalPlugins')
 BEGIN
     CREATE TABLE GlobalPlugins (
-        PluginID NVARCHAR(100) PRIMARY KEY,
-        PluginName NVARCHAR(200) NOT NULL,
-        Version NVARCHAR(50) NOT NULL,
-        Description NVARCHAR(MAX),
-        Author NVARCHAR(200),
-        Category NVARCHAR(100),
-        IconURL NVARCHAR(500),
-        DocumentationURL NVARCHAR(500),
-        IsSystemPlugin BIT DEFAULT 0,
-        RequiresConfiguration BIT DEFAULT 0,
-        CreatedAt DATETIME DEFAULT GETDATE(),
-        UpdatedAt DATETIME DEFAULT GETDATE()
+        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        name NVARCHAR(100) NOT NULL,
+        displayName NVARCHAR(200) NOT NULL,
+        description NVARCHAR(1000),
+        version NVARCHAR(20) NOT NULL,
+        author NVARCHAR(100),
+        authorEmail NVARCHAR(255),
+        category NVARCHAR(50),
+        tags NVARCHAR(500),
+        packagePath NVARCHAR(500),
+        mainFile NVARCHAR(255),
+        manifestFile NVARCHAR(255),
+        minAppVersion NVARCHAR(20),
+        maxAppVersion NVARCHAR(20),
+        dependencies NVARCHAR(1000),
+        hasDatabase BIT,
+        hasAPI BIT,
+        hasUI BIT,
+        hasHooks BIT,
+        requiredPermissions NVARCHAR(500),
+        securityLevel NVARCHAR(20),
+        status NVARCHAR(20),
+        isOfficial BIT,
+        createdAt DATETIME2,
+        updatedAt DATETIME2
     );
     PRINT 'GlobalPlugins table created';
-END
-GO
-
--- PluginSettings table (simplified without Companies FK)
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PluginSettings')
-BEGIN
-    CREATE TABLE PluginSettings (
-        SettingID INT IDENTITY(1,1) PRIMARY KEY,
-        CompanyCode NVARCHAR(50) NOT NULL,
-        PluginID NVARCHAR(100) NOT NULL,
-        SettingKey NVARCHAR(200) NOT NULL,
-        SettingValue NVARCHAR(MAX),
-        SettingType NVARCHAR(50) DEFAULT 'string',
-        IsEncrypted BIT DEFAULT 0,
-        IsEnabled BIT DEFAULT 1,
-        UpdatedAt DATETIME DEFAULT GETDATE(),
-        UpdatedBy NVARCHAR(100),
-        CONSTRAINT FK_PluginSettings_Plugin FOREIGN KEY (PluginID) 
-            REFERENCES GlobalPlugins(PluginID) ON DELETE CASCADE,
-        CONSTRAINT UQ_PluginSetting UNIQUE (CompanyCode, PluginID, SettingKey)
-    );
-    PRINT 'PluginSettings table created';
 END
 GO
 
@@ -425,7 +441,7 @@ IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PluginAPIEndpoints')
 BEGIN
     CREATE TABLE PluginAPIEndpoints (
         EndpointID INT IDENTITY(1,1) PRIMARY KEY,
-        PluginID NVARCHAR(100) NOT NULL,
+        PluginID UNIQUEIDENTIFIER NOT NULL,
         Method NVARCHAR(10) NOT NULL,
         Path NVARCHAR(500) NOT NULL,
         Description NVARCHAR(MAX),
@@ -434,27 +450,152 @@ BEGIN
         IsActive BIT DEFAULT 1,
         CreatedAt DATETIME DEFAULT GETDATE(),
         CONSTRAINT FK_PluginEndpoints_Plugin FOREIGN KEY (PluginID) 
-            REFERENCES GlobalPlugins(PluginID) ON DELETE CASCADE
+            REFERENCES GlobalPlugins(id) ON DELETE CASCADE
     );
     PRINT 'PluginAPIEndpoints table created';
 END
 GO
 
--- PluginHooks table
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PluginHooks')
+-- SystemHooks table
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SystemHooks')
 BEGIN
-    CREATE TABLE PluginHooks (
-        HookID INT IDENTITY(1,1) PRIMARY KEY,
-        PluginID NVARCHAR(100) NOT NULL,
-        HookName NVARCHAR(100) NOT NULL,
-        HandlerFunction NVARCHAR(200),
-        Priority INT DEFAULT 100,
-        IsActive BIT DEFAULT 1,
-        CreatedAt DATETIME DEFAULT GETDATE(),
-        CONSTRAINT FK_PluginHooks_Plugin FOREIGN KEY (PluginID) 
-            REFERENCES GlobalPlugins(PluginID) ON DELETE CASCADE
+    CREATE TABLE SystemHooks (
+        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        name NVARCHAR(100) NOT NULL,
+        displayName NVARCHAR(200) NOT NULL,
+        description NVARCHAR(500),
+        hookType NVARCHAR(50) NOT NULL,
+        category NVARCHAR(50),
+        parameters NVARCHAR(1000),
+        returnType NVARCHAR(100),
+        triggerContext NVARCHAR(200),
+        isAsync BIT DEFAULT 0,
+        createdAt DATETIME2 DEFAULT GETUTCDATE()
     );
-    PRINT 'PluginHooks table created';
+    PRINT 'SystemHooks table created';
+END
+GO
+
+-- PluginHookRegistrations table
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PluginHookRegistrations')
+BEGIN
+    CREATE TABLE PluginHookRegistrations (
+        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        tenantId NVARCHAR(50) NOT NULL,
+        pluginId UNIQUEIDENTIFIER NOT NULL,
+        hookId UNIQUEIDENTIFIER NOT NULL,
+        handlerFunction NVARCHAR(255) NOT NULL,
+        priority INT DEFAULT 10,
+        isEnabled BIT DEFAULT 1,
+        executionCount INT DEFAULT 0,
+        totalExecutionTime BIGINT DEFAULT 0,
+        lastExecuted DATETIME2,
+        lastError NVARCHAR(1000),
+        registeredAt DATETIME2 DEFAULT GETUTCDATE(),
+        CONSTRAINT FK_PluginHookReg_Plugin FOREIGN KEY (pluginId) 
+            REFERENCES GlobalPlugins(id) ON DELETE CASCADE,
+        CONSTRAINT FK_PluginHookReg_Hook FOREIGN KEY (hookId) 
+            REFERENCES SystemHooks(id) ON DELETE CASCADE
+    );
+    PRINT 'PluginHookRegistrations table created';
+END
+GO
+
+-- PluginMenuItems table
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PluginMenuItems')
+BEGIN
+    CREATE TABLE PluginMenuItems (
+        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        tenantId NVARCHAR(50) NOT NULL,
+        pluginId UNIQUEIDENTIFIER NOT NULL,
+        label NVARCHAR(100) NOT NULL,
+        icon NVARCHAR(100),
+        route NVARCHAR(255),
+        component NVARCHAR(255),
+        parentMenu NVARCHAR(100),
+        sortOrder INT DEFAULT 100,
+        requiredRole NVARCHAR(50),
+        requiredPermissions NVARCHAR(500),
+        isEnabled BIT DEFAULT 1,
+        isVisible BIT DEFAULT 1,
+        createdAt DATETIME2 DEFAULT GETUTCDATE(),
+        CONSTRAINT FK_PluginMenu_Plugin FOREIGN KEY (pluginId) 
+            REFERENCES GlobalPlugins(id) ON DELETE CASCADE
+    );
+    PRINT 'PluginMenuItems table created';
+END
+GO
+
+-- PluginDatabaseObjects table
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PluginDatabaseObjects')
+BEGIN
+    CREATE TABLE PluginDatabaseObjects (
+        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        tenantId NVARCHAR(50) NOT NULL,
+        pluginId UNIQUEIDENTIFIER NOT NULL,
+        objectType NVARCHAR(50) NOT NULL,
+        objectName NVARCHAR(255) NOT NULL,
+        schemaName NVARCHAR(100) DEFAULT 'dbo',
+        creationScript NVARCHAR(MAX),
+        rollbackScript NVARCHAR(MAX),
+        dependsOn NVARCHAR(1000),
+        requiredBy NVARCHAR(1000),
+        isCreated BIT DEFAULT 0,
+        createdAt DATETIME2,
+        lastModified DATETIME2,
+        CONSTRAINT FK_PluginDBObj_Plugin FOREIGN KEY (pluginId) 
+            REFERENCES GlobalPlugins(id) ON DELETE CASCADE
+    );
+    PRINT 'PluginDatabaseObjects table created';
+END
+GO
+
+-- PluginActivityLog table
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PluginActivityLog')
+BEGIN
+    CREATE TABLE PluginActivityLog (
+        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        tenantId NVARCHAR(50) NOT NULL,
+        pluginId UNIQUEIDENTIFIER,
+        activity NVARCHAR(100) NOT NULL,
+        description NVARCHAR(500),
+        userId NVARCHAR(100),
+        userRole NVARCHAR(50),
+        ipAddress NVARCHAR(45),
+        userAgent NVARCHAR(500),
+        metadata NVARCHAR(MAX),
+        timestamp DATETIME2 DEFAULT GETUTCDATE(),
+        CONSTRAINT FK_PluginActivity_Plugin FOREIGN KEY (pluginId) 
+            REFERENCES GlobalPlugins(id) ON DELETE SET NULL
+    );
+    PRINT 'PluginActivityLog table created';
+END
+GO
+
+-- TenantPluginInstallations table
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TenantPluginInstallations')
+BEGIN
+    CREATE TABLE TenantPluginInstallations (
+        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        tenantId NVARCHAR(50) NOT NULL,
+        pluginId UNIQUEIDENTIFIER NOT NULL,
+        installedVersion NVARCHAR(20) NOT NULL,
+        installedAt DATETIME2 DEFAULT GETUTCDATE(),
+        installedBy NVARCHAR(100),
+        isEnabled BIT DEFAULT 1,
+        isConfigured BIT DEFAULT 0,
+        configuration NVARCHAR(MAX),
+        customSettings NVARCHAR(MAX),
+        lastActivated DATETIME2,
+        lastDeactivated DATETIME2,
+        activationCount INT DEFAULT 0,
+        status NVARCHAR(20) DEFAULT 'installed',
+        errorMessage NVARCHAR(1000),
+        updatedAt DATETIME2 DEFAULT GETUTCDATE(),
+        CONSTRAINT FK_TenantPlugin_Plugin FOREIGN KEY (pluginId) 
+            REFERENCES GlobalPlugins(id) ON DELETE CASCADE
+    );
+    PRINT 'TenantPluginInstallations table created';
 END
 GO
 
