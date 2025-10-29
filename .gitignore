@@ -30,3 +30,7 @@ build/
 # Config files that may contain secrets
 config.json
 config.local.json
+
+# SQL Server installer files (too large for GitHub)
+installers/SQLEXPR_x64_ENU.exe
+SQLEXPR_x64_ENU/

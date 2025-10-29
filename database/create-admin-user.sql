@@ -7,7 +7,7 @@ GO
 -- Check if admin user exists
 IF NOT EXISTS (SELECT * FROM Users WHERE Username = 'admin')
 BEGIN
-    INSERT INTO Users (ID, Username, Email, FullName, Role, PasswordHash, IsActive, CreatedAt)
+    INSERT INTO Users (ID, Username, Email, FullName, Role, PasswordHash, IsActive, CreatedAt, CompanyCode)
     VALUES (
         'admin_001',
         'admin',
@@ -16,7 +16,8 @@ BEGIN
         'Admin',
         'YWJjMTIz',
         1,
-        GETDATE()
+        GETDATE(),
+        'DCPSP'
     );
     PRINT 'Admin user created successfully';
 END
@@ -27,7 +28,8 @@ BEGIN
     SET Email = 'admin@dcpsp.com',
         FullName = 'Joseph Ramon SR',
         PasswordHash = 'YWJjMTIz',
-        IsActive = 1
+        IsActive = 1,
+        CompanyCode = 'DCPSP'
     WHERE Username = 'admin';
     PRINT 'Admin user updated successfully';
 END
@@ -36,16 +38,18 @@ GO
 -- Also create system user for automated tasks
 IF NOT EXISTS (SELECT * FROM Users WHERE ID = 'system_001')
 BEGIN
-    INSERT INTO Users (ID, Username, Email, FullName, Role, PasswordHash, IsActive, CreatedAt)
+    INSERT INTO Users (ID, Username, Email, FullName, Role, PasswordHash, IsActive, CreatedAt, CompanyCode, Vendor)
     VALUES (
         'system_001',
         'system',
-        'system@Knight Industries.com',
+        'system@workzown.com',
         'System',
         'Admin',
-        'YWJjMTIz',
+        'bKE9UspwyIPg8LsQHkJaiehiTeUdstI5JZOvaoQRgJA=',
         1,
-        GETDATE()
+        GETDATE(),
+        'DCPSP',
+        'DCPSP'
     );
     PRINT 'System user created successfully';
 END
