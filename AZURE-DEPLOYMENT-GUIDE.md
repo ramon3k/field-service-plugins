@@ -299,6 +299,29 @@ az group delete --name field-service-rg --yes --no-wait
 
 ---
 
+## ⚠️ Important: File Upload Configuration
+
+Azure App Service uses **ephemeral storage** - uploaded files will be deleted when your app restarts or redeploys.
+
+**For production deployments**, configure Azure Blob Storage for persistent file storage:
+
+📘 **See**: [docs/AZURE-BLOB-STORAGE-SETUP.md](docs/AZURE-BLOB-STORAGE-SETUP.md)
+
+**Quick setup:**
+1. Create Azure Storage Account
+2. Get connection string
+3. Add to App Service environment variables:
+   ```bash
+   AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...
+   ```
+
+Without this configuration:
+- ✅ App works fine
+- ✅ Database is persistent
+- ❌ Uploaded attachments will be lost on restart
+
+---
+
 ## Quick Reference
 
 ### Connection Strings
