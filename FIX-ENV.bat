@@ -24,8 +24,11 @@ if errorlevel 1 (
 
 findstr /C:"DB_PASSWORD=" .env >nul
 if errorlevel 1 (
-    echo DB_PASSWORD=Pass1234 >> .env
-    echo Added DB_PASSWORD=Pass1234
+    echo DB_PASSWORD=YourSQLPasswordHere >> .env
+    echo Added DB_PASSWORD=YourSQLPasswordHere
+    echo.
+    echo WARNING: Default placeholder password added!
+    echo Please edit server\.env and replace YourSQLPasswordHere with your actual SQL Server password
 )
 
 echo.
