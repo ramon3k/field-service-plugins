@@ -11,7 +11,30 @@ Plugins must be packaged as a **ZIP file** containing:
 1. **index.js** - The main plugin code (required)
 2. **plugin.json** - Plugin metadata (required)
 3. **README.md** - Documentation (recommended)
-4. Additional files (optional: CSS, images, etc.)
+4. **Additional files** (optional: CSS, images, subfolders, etc.)
+
+### Subdirectories Are Supported! ✅
+
+You can organize your plugin with subdirectories:
+
+```
+my-plugin.zip
+├── plugin.json
+├── index.js
+├── README.md
+├── frontend/
+│   ├── components/
+│   │   ├── MyComponent.tsx
+│   │   └── styles.css
+│   └── assets/
+│       └── logo.png
+├── utils/
+│   └── helpers.js
+└── database/
+    └── schema.sql
+```
+
+All files and subdirectories will be preserved when the plugin is extracted.
 
 ## plugin.json Schema
 

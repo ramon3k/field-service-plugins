@@ -491,13 +491,23 @@ function initializePluginRoutes(app, pluginManager, pool) {
       // Create plugin directory
       fs.mkdirSync(pluginDir, { recursive: true });
 
-      // Copy all files from temp directory to plugin directory
-      const files = fs.readdirSync(tempDir);
-      files.forEach(file => {
-        const srcPath = path.join(tempDir, file);
-        const destPath = path.join(pluginDir, file);
-        fs.copyFileSync(srcPath, destPath);
-      });
+      // Copy all files from temp directory to plugin directory (including subdirectories)
+      const copyRecursive = (src, dest) => {
+        const entries = fs.readdirSync(src, { withFileTypes: true });
+        for (const entry of entries) {
+          const srcPath = path.join(src, entry.name);
+          const destPath = path.join(dest, entry.name);
+          
+          if (entry.isDirectory()) {
+            fs.mkdirSync(destPath, { recursive: true });
+            copyRecursive(srcPath, destPath);
+          } else {
+            fs.copyFileSync(srcPath, destPath);
+          }
+        }
+      };
+      
+      copyRecursive(tempDir, pluginDir);
 
       console.log('✅ Plugin files copied to:', pluginDir);
 
