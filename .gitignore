@@ -62,7 +62,6 @@ test-output.txt
 # Deployment artifacts and zips
 *.zip
 !time-clock-plugin.zip
-!vamp-plugin.zip
 server-only.zip
 api-server-only.zip
 deploy.zip
