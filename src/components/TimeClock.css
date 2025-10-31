@@ -1,0 +1,149 @@
+.time-clock-widget {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  max-width: 400px;
+  margin: 20px auto;
+}
+
+.time-clock-header {
+  text-align: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 12px;
+}
+
+.time-clock-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.time-clock-error {
+  background: #fee;
+  border-left: 4px solid #f44;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  color: #c00;
+}
+
+.time-clock-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.time-clock-setup input {
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.time-clock-setup input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.time-clock-status {
+  margin-bottom: 16px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.status-badge.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.current-session,
+.last-session {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.current-session p,
+.last-session p {
+  margin: 8px 0;
+  color: #555;
+}
+
+.duration {
+  font-size: 18px;
+  font-weight: bold;
+  color: #4CAF50 !important;
+}
+
+button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clock-in-btn {
+  background: #4CAF50;
+  color: white;
+}
+
+.clock-in-btn:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.clock-out-btn {
+  background: #f44336;
+  color: white;
+}
+
+.clock-out-btn:hover:not(:disabled) {
+  background: #da190b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.refresh-btn {
+  background: #2196F3;
+  color: white;
+  margin-top: 8px;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: #0b7dda;
+}
+
+.time-clock-setup button {
+  background: #4CAF50;
+  color: white;
+}
+
+.time-clock-setup button:hover:not(:disabled) {
+  background: #45a049;
+}

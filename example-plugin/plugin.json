@@ -1,0 +1,9 @@
+{
+  "name": "example-plugin",
+  "displayName": "Example Plugin",
+  "version": "1.0.0",
+  "description": "A simple example plugin demonstrating the plugin system",
+  "author": "DCPSP",
+  "category": "general",
+  "isOfficial": false
+}

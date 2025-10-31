@@ -1,0 +1,10 @@
+# BFG replace rules for purging leaked secrets from history
+# Exact literals
+CustomerPortal2025!==>***REMOVED***
+Welcome123!==>***REMOVED***
+FieldService123!==>***REMOVED***
+abc123==>***REMOVED***
+# base64 for demo123
+ZGVtbzEyMw====>***REMOVED***
+# Common env secret assignments (loose patterns)
+regex:(?i)\b(JWT_SECRET|SESSION_SECRET)\s*=\s*[^\r\n]+==>$1=***REMOVED***

@@ -1,0 +1,116 @@
+node_modules
+
+# Local environment and secrets (do NOT commit)
+.env
+*.env
+.env.backup*
+.env.backup-*
+server/.env
+server/.env.*
+.env.local
+.env.*.local
+
+# Plugin uploads temp directory
+uploads/
+server/uploads/
+
+# OS and IDE
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Logs and debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+setup-debug.log
+setup-test.log
+install.log
+api-logs/
+azure-logs/
+deploy-logs/
+latest-logs/
+temp-logs/
+
+# Build outputs
+dist/
+build/
+
+# Development and testing files
+temp-*
+test-*.cjs
+test-*.txt
+*-demo-*.cjs
+verify-*.cjs
+check-*.cjs
+compare-*.cjs
+deployed-api-check.cjs
+get-schema.cjs
+load-complete-demo-data.cjs
+strip-tenant-logic.ps1
+api-for-deployment*.cjs
+current-working-api.cjs
+temp-api-*.cjs
+temp-extract/
+temp-restore-api.cjs
+query
+test-from-client.ps1
+test-output.txt
+
+# Deployment artifacts and zips
+*.zip
+!time-clock-plugin.zip
+!vamp-plugin.zip
+server-only.zip
+api-server-only.zip
+deploy.zip
+deploy-logs.zip
+api-logs*.zip
+azure-logs.zip
+latest-logs.zip
+standalone-customer-portal/*.zip
+
+# Standalone customer portal (used in separate multitenant repo)
+standalone-customer-portal/
+
+# SQL fix scripts and temp database files
+fix-*.sql
+fix-*.ps1
+fix-*.cjs
+diagnose-*.sql
+diagnose-*.ps1
+install-timeclock-for-cbgb.sql
+change-company-code.sql
+schema-check.txt
+
+# Config files that may contain secrets
+config.json
+config.local.json
+api-package.json
+build-exclude.txt
+"fail log.txt"
+
+# Generated SQL files with user credentials
+database/create-admin-user.sql
+database/*demo*.sql
+database/test-*.sql
+database/fix-*.sql
+database/check-*.sql
+database/populate-demo-data.sql
+
+# SQL Server installer files (too large for GitHub)
+installers/SQLEXPR_x64_ENU.exe
+SQLEXPR_x64_ENU/
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# Backup files
+*.backup
+SETUP.bat.backup
+
+# API copies
+api.cjs
+server/api.cjs is the only one we need

@@ -1,0 +1,26 @@
+[
+  {
+    "Customer": "Ramrex, Inc.",
+    "ContactEmail": "contact@ramrex.com",
+    "ContactPhone": "(555) 123-4567",
+    "Address": "123 Business Dr, City, ST 12345",
+    "Industry": "Manufacturing",
+    "AccountManager": "Sarah Johnson"
+  },
+  {
+    "Customer": "TechCorp Solutions",
+    "ContactEmail": "admin@techcorp.com", 
+    "ContactPhone": "(555) 987-6543",
+    "Address": "456 Tech Ave, Innovation City, CA 90210",
+    "Industry": "Technology",
+    "AccountManager": "Mike Wilson"
+  },
+  {
+    "Customer": "Global Retail Chain",
+    "ContactEmail": "facilities@globalretail.com",
+    "ContactPhone": "(555) 456-7890", 
+    "Address": "789 Retail Blvd, Commerce Town, TX 75001",
+    "Industry": "Retail",
+    "AccountManager": "Lisa Chen"
+  }
+]

@@ -1,0 +1,10 @@
+node_modules/
+uploads/
+*.log
+*.zip
+.env
+.azure/
+temp-*
+azure-*
+api-deploy.zip
+api-server-only.zip

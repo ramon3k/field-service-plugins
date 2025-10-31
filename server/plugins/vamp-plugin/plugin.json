@@ -1,0 +1,16 @@
+{
+  "id": "vamp-plugin",
+  "name": "vamp-plugin",
+  "displayName": "Virtual Asset Management Platform",
+  "version": "1.0.0",
+  "description": "Enterprise device and asset management with full tracking, history, and search capabilities",
+  "author": "DCPSP",
+  "category": "asset-management",
+  "keywords": ["assets", "devices", "tracking", "inventory", "security"],
+  "homepage": "https://vamp.dcpsp.com",
+  "license": "MIT",
+  "isOfficial": false,
+  "requiresDatabase": true,
+  "supportedEnvironments": ["production", "development"],
+  "minSystemVersion": "1.0.0"
+}

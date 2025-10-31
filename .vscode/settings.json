@@ -1,0 +1,14 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/45aa51d8-cbdd-401a-891c-d940be67bd42/resourceGroups/customer-portal_group/providers/Microsoft.Web/sites/field-service-api",
+    "appService.deploySubpath": "server",
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        "uploads{,/**}",
+        "*.log",
+        "*.zip",
+        ".env",
+        ".azure{,/**}",
+        "temp-*",
+        "azure-*"
+    ]
+}

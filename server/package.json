@@ -1,0 +1,25 @@
+{
+  "name": "field-service-api",
+  "version": "1.0.0",
+  "description": "Field Service API with SQL Server Express",
+  "main": "api.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node api.js",
+    "dev": "nodemon api.js"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.5.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "msnodesqlv8": "^5.1.1",
+    "mssql": "^11.0.1",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

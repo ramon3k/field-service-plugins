@@ -1,0 +1,14 @@
+{
+  "name": "time-clock",
+  "displayName": "Technician Time Clock",
+  "version": "1.0.1",
+  "description": "Track technician time in/out for tickets with automatic note generation and comprehensive reporting",
+  "author": "DCPSP",
+  "category": "time-tracking",
+  "license": "MIT",
+  "compatibility": {
+    "minAppVersion": "2.1.0",
+    "testedAppVersion": "2.1.2"
+  },
+  "isOfficial": true
+}
