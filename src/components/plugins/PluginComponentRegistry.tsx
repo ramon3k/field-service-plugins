@@ -13,16 +13,14 @@
  */
 
 import React, { ComponentType, lazy, Suspense } from 'react';
+import { autoRegisterPluginComponentsSync } from './auto-register';
 
 // Import built-in plugin components here as needed
 // Example:
 // import MyBuiltInPlugin from './MyBuiltInPlugin';
 
-// Auto-discovery: This will be populated at build time by webpack/vite
-// For now, we'll use the manual registry below
-const AUTO_DISCOVERED_COMPONENTS: Record<string, ComponentType<PluginComponentProps>> = {
-  // Automatically populated during build
-};
+// Auto-discovery: Automatically scan and load all .tsx files in this directory
+const AUTO_DISCOVERED_COMPONENTS: Record<string, ComponentType<PluginComponentProps>> = autoRegisterPluginComponentsSync();
 
 // Component props interface - all plugin components receive these
 export interface PluginComponentProps {

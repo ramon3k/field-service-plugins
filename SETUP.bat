@@ -618,7 +618,7 @@ REM Install server dependencies
 echo Installing server dependencies...
 cd /d "%INSTALL_DIR%server"
 if exist package.json (
-    call npm install --production
+    call npm install
     if !errorLevel! equ 0 (
         echo [OK] Server dependencies installed
         echo [OK] Server dependencies installation completed >> "%LOG_FILE%"

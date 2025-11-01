@@ -340,6 +340,7 @@ After uploading:
 
 ## Additional Resources
 
-- See `PLUGIN-DEVELOPMENT-GUIDE.md` for full API reference
-- Check `server/plugins/time-clock/` for complete example
-- Review SQL schema in `GlobalPlugins` and `TenantPluginInstallations` tables
+- **[Plugin Frontend Components Guide](PLUGIN-FRONTEND-COMPONENTS.md)** - CSS guidelines and component registration
+- **[Plugin Development Guide](docs/PLUGIN-DEVELOPMENT-GUIDE.md)** - Full API reference
+- **Example Plugin**: Check `server/plugins/time-clock/` for complete example
+- **Database Schema**: Review `GlobalPlugins` and `TenantPluginInstallations` tables
