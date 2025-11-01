@@ -14,10 +14,9 @@
 
 import React, { ComponentType, lazy, Suspense } from 'react';
 
-// Import built-in plugin components (legacy)
-import VampDeviceManager from './VampDeviceManager';
-import PopupMessenger from './PopupMessenger';
-import InstantMessenger from './InstantMessenger';
+// Import built-in plugin components here as needed
+// Example:
+// import MyBuiltInPlugin from './MyBuiltInPlugin';
 
 // Auto-discovery: This will be populated at build time by webpack/vite
 // For now, we'll use the manual registry below
@@ -35,18 +34,12 @@ export interface PluginComponentProps {
 
 // Manual registry for built-in and explicitly registered components
 const MANUAL_COMPONENTS: Record<string, ComponentType<PluginComponentProps>> = {
-  // VAMP Plugin
-  'vamp-dashboard': VampDeviceManager,
-  'VampDeviceManager': VampDeviceManager,
+  // Add your plugin components here when you install them:
+  // 'my-plugin-page': MyPluginComponent,
   
-  // Popup Messenger Plugin (legacy)
-  'popup-messenger-page': PopupMessenger,
-  
-  // Instant Messenger Plugin
-  'instant-messenger-page': InstantMessenger,
-  
-  // Add more plugin components here if needed:
-  // 'time-clock-report': TimeClockReport,
+  // Example (uncomment when you have the component):
+  // 'vamp-dashboard': VampDeviceManager,
+  // 'instant-messenger-page': InstantMessenger,
 };
 
 // Merged registry combining auto-discovered and manual components

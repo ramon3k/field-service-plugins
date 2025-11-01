@@ -77,6 +77,15 @@ server/plugins/*
 # Optionally keep specific example plugins:
 # !server/plugins/example-plugin/
 
+# Plugin component files in src (copied from server/plugins during installation)
+# These are installation-specific and should not be committed
+src/components/plugins/InstantMessenger.tsx
+src/components/plugins/InstantMessenger.css
+src/components/plugins/PopupMessenger.tsx
+src/components/plugins/PopupMessenger.css
+src/components/plugins/VampDeviceManager.tsx
+# Add other plugin-specific component files here as needed
+
 # Standalone customer portal (used in separate multitenant repo)
 standalone-customer-portal/
 
