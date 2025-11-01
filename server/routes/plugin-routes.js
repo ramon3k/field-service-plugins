@@ -220,6 +220,32 @@ function initializePluginRoutes(app, pluginManager, pool) {
             
             const pluginModule = require(pluginPath);
             
+            // Copy frontend files if they exist
+            const frontendPath = path.join(__dirname, '..', 'plugins', pluginName, 'frontend');
+            if (fs.existsSync(frontendPath)) {
+              console.log(`📂 Frontend folder found for ${pluginName}, copying files...`);
+              const targetPath = path.join(__dirname, '..', '..', 'src', 'components', 'plugins');
+              
+              // Ensure target directory exists
+              if (!fs.existsSync(targetPath)) {
+                fs.mkdirSync(targetPath, { recursive: true });
+              }
+              
+              // Copy all files from frontend folder
+              const files = fs.readdirSync(frontendPath);
+              let copiedFiles = [];
+              for (const file of files) {
+                const sourcePath = path.join(frontendPath, file);
+                const destPath = path.join(targetPath, file);
+                fs.copyFileSync(sourcePath, destPath);
+                copiedFiles.push(file);
+                console.log(`✅ Copied ${file} to src/components/plugins/`);
+              }
+              
+              console.log(`� Frontend files copied: ${copiedFiles.join(', ')}`);
+              console.log(`⚠️ User must rebuild the app to see frontend components`);
+            }
+            
             // Call onInstall hook if it exists
             if (pluginModule.hooks && typeof pluginModule.hooks.onInstall === 'function') {
               console.log(`🔧 Calling onInstall hook for ${pluginName}...`);

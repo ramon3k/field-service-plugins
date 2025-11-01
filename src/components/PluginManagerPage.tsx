@@ -111,7 +111,7 @@ export default function PluginManagerPage() {
       }
 
       await fetchPlugins()
-      alert('Plugin installed successfully! Please refresh the page to see changes.')
+      alert('Plugin installed successfully!\n\nIf this plugin has frontend components, they have been automatically copied to src/components/plugins/.\n\nNext steps:\n1. Stop the dev server (if running)\n2. Run: npm run build\n3. Restart the API server\n4. Refresh the browser\n\nThe frontend components will then appear!')
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to install plugin')
     } finally {
