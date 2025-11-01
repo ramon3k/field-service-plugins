@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import type { AuthUser } from '../types'
 import { authService } from '../services/AuthService'
+import { useMessengerNotification } from '../contexts/MessengerNotificationContext'
 import './Nav.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -39,32 +40,14 @@ interface NavProps {
   setTab: (tab: string) => void
   onLogout: () => void
   newRequestsCount: number // Count passed from ServiceRequestsPage
+  pluginNavTabs: Array<{pluginId: string, id: string, label: string, icon?: string, componentId: string, roles?: string[]}>
 }
 
-export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCount }: NavProps) {
-  // No longer need to fetch count - it's passed as a prop from ServiceRequestsPage
-  const [pluginTabs, setPluginTabs] = useState<Array<{pluginId: string, id: string, label: string, icon?: string, componentId: string, roles?: string[]}>>([])
-
-  // Fetch plugin nav tabs on mount
-  useEffect(() => {
-    const fetchPluginTabs = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/plugins/nav-tabs`, {
-          headers: getHeaders()
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setPluginTabs(data.tabs || [])
-        }
-      } catch (error) {
-        console.error('Failed to fetch plugin nav tabs:', error)
-      }
-    }
-    
-    if (currentUser) {
-      fetchPluginTabs()
-    }
-  }, [currentUser])
+export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCount, pluginNavTabs }: NavProps) {
+  // Plugin tabs are now passed as props instead of fetched separately
+  
+  // Get messenger notification context for unread count
+  const { unreadCount: messengerUnreadCount } = useMessengerNotification()
 
   const handleChangePassword = async () => {
     if (!currentUser) return
@@ -111,14 +94,14 @@ export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCou
     
     // Add plugin tabs that match user's role
     const userRole = currentUser.role
-    const allowedPluginTabs = pluginTabs
-      .filter(pluginTab => {
+    const allowedPluginTabs = pluginNavTabs
+      .filter((pluginTab) => {
         // If no roles specified, tab is available to everyone
         if (!pluginTab.roles || pluginTab.roles.length === 0) return true
         // Otherwise check if user's role is in the allowed roles
         return pluginTab.roles.includes(userRole)
       })
-      .map(pluginTab => pluginTab.label) // Use the label as the tab name
+      .map((pluginTab) => pluginTab.label) // Use the label as the tab name
     
     return [...coreTabs, ...allowedPluginTabs]
   }
@@ -137,6 +120,11 @@ export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCou
             {t === 'Requests' && newRequestsCount > 0 && (
               <span className="request-badge">
                 {newRequestsCount}
+              </span>
+            )}
+            {t === 'Messenger' && messengerUnreadCount > 0 && (
+              <span className="request-badge">
+                {messengerUnreadCount}
               </span>
             )}
           </button>
