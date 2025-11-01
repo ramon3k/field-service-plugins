@@ -71,6 +71,12 @@ azure-logs.zip
 latest-logs.zip
 standalone-customer-portal/*.zip
 
+# Plugins directory - exclude all plugins from git
+server/plugins/*
+!server/plugins/.gitkeep
+# Optionally keep specific example plugins:
+# !server/plugins/example-plugin/
+
 # Standalone customer portal (used in separate multitenant repo)
 standalone-customer-portal/
 

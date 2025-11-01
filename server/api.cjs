@@ -12,6 +12,9 @@ const { v4: uuidv4 } = require('uuid');
 const PluginManager = require('./plugin-manager');
 const { initializePluginRoutes } = require('./routes/plugin-routes');
 
+// Global Notification Service
+const globalNotificationService = require('../services/GlobalNotificationService.cjs');
+
 const app = express();
 const cors = require('cors');
 const PORT = process.env.PORT || 5000;
@@ -179,12 +182,18 @@ initializeDatabase()
     // Initialize plugin routes after plugin system is ready
     initializePluginRoutes(app, pluginManager, pool);
     
+    // Register notification service routes
+    app.use('/api/notifications', require('../services/NotificationRoutes.cjs'));
+    
     // Start server AFTER all routes are registered (including plugin routes)
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`?f�� Field Service API running on http://127.0.0.1:${PORT}`);
-      console.log(`?f�� Database: Azure SQL - ${process.env.DB_SERVER}/${process.env.DB_NAME}`);
-      console.log(`?f�� Test the API: http://127.0.0.1:${PORT}/api/test`);
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Field Service API running on http://127.0.0.1:${PORT}`);
+      console.log(`📊 Database: Azure SQL - ${process.env.DB_SERVER}/${process.env.DB_NAME}`);
+      console.log(`🔧 Test the API: http://127.0.0.1:${PORT}/api/test`);
     });
+    
+    // Start Global Notification Service
+    globalNotificationService.start();
   })
   .catch(err => {
     console.error('Fatal: Could not initialize database connection', err);

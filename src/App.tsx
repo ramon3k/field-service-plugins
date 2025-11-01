@@ -19,6 +19,8 @@ import ServiceRequestsPage from './components/ServiceRequestsPage'
 import TechnicianInterface from './components/TechnicianInterface'
 import { TenantLogin } from './components/TenantLogin'
 import { getPluginComponent } from './components/plugins/PluginComponentRegistry'
+import { MessengerNotificationProvider } from './contexts/MessengerNotificationContext'
+import GlobalNotificationProvider from './components/GlobalNotificationProvider'
 
 import MapOnlyApp from './MapOnlyApp'
 import { listTickets, createTicket, updateTicket, listSites } from './api-sql'
@@ -161,6 +163,10 @@ export default function App() {
     const interval = setInterval(fetchCount, 60000)
     return () => clearInterval(interval)
   }, [isAuthenticated, currentUser])
+
+  // Note: Plugin-specific heartbeats (like instant-messenger) are handled within each plugin component
+
+
 
   // Initialize authentication state on mount - check for existing session
   useEffect(() => {
@@ -503,125 +509,134 @@ export default function App() {
   }
 
   return (
-    <div className="container">
-      {/* Tenant Login - Show when not authenticated */}
-      {!isAuthenticated && (
-        <TenantLogin
-          onLogin={handleTenantLogin}
-        />
-      )}
+    <MessengerNotificationProvider>
+      <GlobalNotificationProvider 
+        currentTab={tab}
+        onTabSwitch={setTab}
+        currentUser={currentUser || undefined}
+      >
+        <div className="container">
+          {/* Tenant Login - Show when not authenticated */}
+          {!isAuthenticated && (
+            <TenantLogin
+              onLogin={handleTenantLogin}
+            />
+          )}
 
-      {/* Main Application - Show when authenticated */}
-      {isAuthenticated && (
-        <>
-          <div className="row" style={{marginBottom: 12}}>
-            <div style={{flex:1}}>
-              <h1>{companyDisplayName}</h1>
-              <div className="muted">
-                Field Service Management Platform
-                {currentTenant && (
-                  <span style={{ marginLeft: '16px', fontWeight: 500, color: '#3b82f6' }}>
-                    • {currentTenant.name} ({currentTenant.tier})
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="toolbar" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-              <img src="/wkzwn.png" alt="Logo" style={{height: '60px', width: 'auto', objectFit: 'contain'}} />
-              {tab==='Tickets' && <button className="ghost" onClick={refresh}>Refresh</button>}
-              {tab==='Tickets' && <button className="primary" onClick={handleNewTicket}>New Ticket</button>}
-            </div>
-          </div>
-
-          <Nav
-            tab={tab}
-            setTab={(t)=>setTab(t as any)}
-            currentUser={currentUser}
-            onLogout={handleLogout}
-            newRequestsCount={newRequestsCount}
-          />          {tab==='Tickets' && (
+          {/* Main Application - Show when authenticated */}
+          {isAuthenticated && (
             <>
-              {error && <div className="card" style={{borderColor:'#ff5470', color:'#ffb3bf'}}>Error: {error}</div>}
-              <TicketList 
-                items={tickets.filter(ticket => ticket.Status !== 'Closed')} 
-                onStatusChange={handleStatusChange} 
-                onEdit={handleEditTicket} 
-                loading={loading} 
-              />
+              <div className="row" style={{marginBottom: 12}}>
+                <div style={{flex:1}}>
+                  <h1>{companyDisplayName}</h1>
+                  <div className="muted">
+                    Field Service Management Platform
+                    {currentTenant && (
+                      <span style={{ marginLeft: '16px', fontWeight: 500, color: '#3b82f6' }}>
+                        • {currentTenant.name} ({currentTenant.tier})
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="toolbar" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                  <img src="/wkzwn.png" alt="Logo" style={{height: '60px', width: 'auto', objectFit: 'contain'}} />
+                  {tab==='Tickets' && <button className="ghost" onClick={refresh}>Refresh</button>}
+                  {tab==='Tickets' && <button className="primary" onClick={handleNewTicket}>New Ticket</button>}
+                </div>
+              </div>
+
+              <Nav
+                tab={tab}
+                setTab={(t)=>setTab(t as any)}
+                currentUser={currentUser}
+                onLogout={handleLogout}
+                newRequestsCount={newRequestsCount}
+                pluginNavTabs={pluginNavTabs}
+              />          {tab==='Tickets' && (
+                <>
+                  {error && <div className="card" style={{borderColor:'#ff5470', color:'#ffb3bf'}}>Error: {error}</div>}
+                  <TicketList 
+                    items={tickets.filter(ticket => ticket.Status !== 'Closed')} 
+                    onStatusChange={handleStatusChange} 
+                    onEdit={handleEditTicket} 
+                    loading={loading} 
+                  />
+                </>
+              )}
+
+              {tab==='Map' && <OperationsMap tickets={tickets} refreshTrigger={mapRefreshTrigger} />}
+              {tab==='Calendar' && <DispatchCalendar tickets={tickets} currentUser={currentUser} onTicketSelect={setEditTicket} />}
+              {tab==='Reports' && <ReportsPage tickets={tickets} sites={sites} />}
+              {tab==='Closed' && (
+                <ClosedTicketsPage 
+                  tickets={tickets} 
+                  onViewHistory={(ticket) => setEditTicket(ticket)}
+                  onReopen={handleReopenTicket}
+                />
+              )}
+              {tab==='Users' && <UserManagementPage currentUser={currentUser} />}
+              {tab==='Plugins' && <PluginManagerPage />}
+              {tab==='Activity' && <ActivityLogPage />}
+              {tab==='Customers' && <CustomersPage />}
+              {tab==='Sites' && <SitesPage />}
+              {tab==='Licenses' && <LicensesPage />}
+              {tab==='Vendors' && <VendorsPage />}
+              {tab==='Requests' && <ServiceRequestsPage onLogout={handleLogout} onCountChange={setNewRequestsCount} />}
+
+              {/* Plugin Nav Tabs - dynamically render plugin components */}
+              {pluginNavTabs.map(pluginTab => {
+                if (tab === pluginTab.label) {
+                  // Check role permissions
+                  if (pluginTab.roles && pluginTab.roles.length > 0 && currentUser) {
+                    if (!pluginTab.roles.includes(currentUser.role)) {
+                      return null // User doesn't have permission
+                    }
+                  }
+                  
+                  // Get the component from the registry
+                  const PluginComponent = getPluginComponent(pluginTab.componentId);
+                  
+                  if (!PluginComponent) {
+                    return (
+                      <div key={`${pluginTab.pluginId}-${pluginTab.id}`} className="card">
+                        <h2>{pluginTab.icon} {pluginTab.label}</h2>
+                        <p className="muted">
+                          Component "{pluginTab.componentId}" not found in registry.
+                        </p>
+                      </div>
+                    );
+                  }
+                  
+                  // Render the actual plugin component
+                  return (
+                    <div key={`${pluginTab.pluginId}-${pluginTab.id}`}>
+                      <PluginComponent
+                        currentUser={currentUser}
+                        companyCode={currentUser?.companyCode || ''}
+                        pluginId={pluginTab.pluginId}
+                        componentId={pluginTab.componentId}
+                      />
+                    </div>
+                  );
+                }
+                return null
+              })}
+
+              {/* Global Ticket Edit Modal - available from any tab */}
+              {editTicket && (
+                <TicketEditModal 
+                  ticket={editTicket} 
+                  onClose={handleCloseModal} 
+                  onSave={handleEditSave} 
+                  readonly={editTicket.Status === 'Closed'}
+                  companyName={companyDisplayName}
+                  currentUser={currentUser}
+                />
+              )}
             </>
           )}
-
-          {tab==='Map' && <OperationsMap tickets={tickets} refreshTrigger={mapRefreshTrigger} />}
-          {tab==='Calendar' && <DispatchCalendar tickets={tickets} currentUser={currentUser} onTicketSelect={setEditTicket} />}
-          {tab==='Reports' && <ReportsPage tickets={tickets} sites={sites} />}
-          {tab==='Closed' && (
-            <ClosedTicketsPage 
-              tickets={tickets} 
-              onViewHistory={(ticket) => setEditTicket(ticket)}
-              onReopen={handleReopenTicket}
-            />
-          )}
-          {tab==='Users' && <UserManagementPage currentUser={currentUser} />}
-          {tab==='Plugins' && <PluginManagerPage />}
-          {tab==='Activity' && <ActivityLogPage />}
-          {tab==='Customers' && <CustomersPage />}
-          {tab==='Sites' && <SitesPage />}
-          {tab==='Licenses' && <LicensesPage />}
-          {tab==='Vendors' && <VendorsPage />}
-          {tab==='Requests' && <ServiceRequestsPage onLogout={handleLogout} onCountChange={setNewRequestsCount} />}
-
-          {/* Plugin Nav Tabs - dynamically render plugin components */}
-          {pluginNavTabs.map(pluginTab => {
-            if (tab === pluginTab.label) {
-              // Check role permissions
-              if (pluginTab.roles && pluginTab.roles.length > 0 && currentUser) {
-                if (!pluginTab.roles.includes(currentUser.role)) {
-                  return null // User doesn't have permission
-                }
-              }
-              
-              // Get the component from the registry
-              const PluginComponent = getPluginComponent(pluginTab.componentId);
-              
-              if (!PluginComponent) {
-                return (
-                  <div key={`${pluginTab.pluginId}-${pluginTab.id}`} className="card">
-                    <h2>{pluginTab.icon} {pluginTab.label}</h2>
-                    <p className="muted">
-                      Component "{pluginTab.componentId}" not found in registry.
-                    </p>
-                  </div>
-                );
-              }
-              
-              // Render the actual plugin component
-              return (
-                <div key={`${pluginTab.pluginId}-${pluginTab.id}`}>
-                  <PluginComponent
-                    currentUser={currentUser}
-                    companyCode={currentUser?.companyCode || ''}
-                    pluginId={pluginTab.pluginId}
-                    componentId={pluginTab.componentId}
-                  />
-                </div>
-              );
-            }
-            return null
-          })}
-
-          {/* Global Ticket Edit Modal - available from any tab */}
-          {editTicket && (
-            <TicketEditModal 
-              ticket={editTicket} 
-              onClose={handleCloseModal} 
-              onSave={handleEditSave} 
-              readonly={editTicket.Status === 'Closed'}
-              companyName={companyDisplayName}
-              currentUser={currentUser}
-            />
-          )}
-        </>
-      )}
-    </div>
+        </div>
+      </GlobalNotificationProvider>
+    </MessengerNotificationProvider>
   )
 }

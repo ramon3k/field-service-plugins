@@ -1,0 +1,2 @@
+# This file ensures the plugins directory is preserved in git
+# All actual plugin files are excluded via .gitignore

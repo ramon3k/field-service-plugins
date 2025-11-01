@@ -11,6 +11,12 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:5000',
         changeOrigin: true,
+      },
+      // Proxy WebSocket connections for global notification service
+      '/ws': {
+        target: 'ws://127.0.0.1:8081',
+        ws: true,
+        changeOrigin: true,
       }
     }
   }
