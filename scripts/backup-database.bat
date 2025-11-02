@@ -29,16 +29,18 @@ if not exist "%BACKUP_DIR%" (
 
 :: Perform database backup
 echo Starting backup...
-sqlcmd -S "%SQL_INSTANCE%" -Q "BACKUP DATABASE [%DB_NAME%] TO DISK = '%BACKUP_FILE%' WITH COMPRESSION, INIT"
+sqlcmd -S "%SQL_INSTANCE%" -Q "BACKUP DATABASE [%DB_NAME%] TO DISK = '%BACKUP_FILE%' WITH INIT"
 
 if %errorLevel% equ 0 (
     echo [√] Backup completed successfully
     echo Backup file: %BACKUP_FILE%
     
     :: Get backup file size
-    for %%A in ("%BACKUP_FILE%") do set "FILESIZE=%%~zA"
-    set /a FILESIZE_MB=%FILESIZE%/1024/1024
-    echo Backup size: %FILESIZE_MB% MB
+    for %%A in ("%BACKUP_FILE%") do (
+        set "FILESIZE=%%~zA"
+        set /a "FILESIZE_MB=!FILESIZE!/1024/1024"
+        echo Backup size: !FILESIZE_MB! MB
+    )
     
 ) else (
     echo [X] Backup failed
