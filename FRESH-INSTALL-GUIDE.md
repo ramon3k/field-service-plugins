@@ -38,7 +38,35 @@ The setup script will automatically:
 - ✅ Set up Windows service
 - ✅ Create desktop shortcuts
 
-### 3. Start the Application
+### 3. Configure Environment (Development Mode Only)
+
+**If you plan to run in development mode** (with `npm run dev`), you need to create a `.env` file:
+
+```bash
+cd C:\field-service-plugins-main
+copy .env.example .env
+```
+
+Edit the `.env` file and configure:
+
+```properties
+# API URL - Use your server hostname for network access
+VITE_API_URL=http://your-server-name:5000/api
+
+# Database Configuration
+DB_AUTH=Windows
+DB_SERVER=YOUR-SERVER\SQLEXPRESS
+DB_NAME=FieldServiceDB
+
+# Other settings as needed...
+```
+
+**Important:** 
+- Use lowercase hostname (e.g., `workzown` not `WORKZOWN`)
+- After creating/editing `.env`, restart the dev server for changes to take effect
+- Production mode (via SETUP.bat) doesn't need this step
+
+### 4. Start the Application
 
 After setup completes, the app will start automatically. You can also:
 
@@ -56,7 +84,7 @@ cd C:\field-service-plugins-main
 START-PRODUCTION.bat
 ```
 
-### 4. Access the Application
+### 5. Access the Application
 
 Open your browser and navigate to:
 - **Local access:** http://localhost
@@ -140,6 +168,48 @@ Press `Ctrl+F5` in your browser to force reload.
 ---
 
 ## Troubleshooting
+
+### Cannot Access From Other Machines (ERR_CONNECTION_REFUSED)
+
+**Symptoms:**
+- App works on server machine (localhost)
+- Other machines can't access at `http://servername:5173`
+- Browser console shows `localhost:5000/api/... ERR_CONNECTION_REFUSED`
+
+**Cause:** Missing or incorrect `.env` file configuration.
+
+**Fix:**
+
+1. **Create `.env` file on server** (if it doesn't exist):
+   ```bash
+   cd C:\field-service-plugins-main
+   copy .env.example .env
+   ```
+
+2. **Edit `.env` and set the API URL**:
+   ```properties
+   VITE_API_URL=http://your-server-name:5000/api
+   ```
+   Use **lowercase** hostname (e.g., `workzown` not `WORKZOWN`)
+
+3. **Allow port 5000 through Windows Firewall** (on server):
+   ```powershell
+   New-NetFirewallRule -DisplayName "Field Service API" -Direction Inbound -LocalPort 5000 -Protocol TCP -Action Allow
+   ```
+
+4. **Restart Vite dev server**:
+   - Stop the server (Ctrl+C)
+   - Start again: `npm run dev`
+
+5. **Test API from another machine**:
+   ```
+   http://servername:5000/api/test
+   ```
+   Should return: `{"message":"API is running"}`
+
+6. **If API test works but app doesn't**, clear browser cache and hard refresh (Ctrl+F5)
+
+---
 
 ### "Cannot find module 'ws'" Error
 

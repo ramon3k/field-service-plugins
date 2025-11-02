@@ -38,7 +38,11 @@ export default function GlobalNotificationProvider({
       try {
         console.log('🔔 Connecting to Global Notification Service...')
         // Connect to built-in global notification service on port 8081
-        ws = new WebSocket('ws://localhost:8081')
+        // Use current hostname to support remote access
+        const wsHost = window.location.hostname
+        const wsUrl = `ws://${wsHost}:8081`
+        console.log('🔔 WebSocket URL:', wsUrl)
+        ws = new WebSocket(wsUrl)
 
         ws.onopen = () => {
           if (isCleanedUp) {
