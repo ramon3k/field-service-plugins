@@ -88,8 +88,8 @@ export default function PrintableServiceTicket({ ticket, onClose, companyName = 
               margin: 20px;
               color: black;
               background: white;
-              font-size: 11pt;
-              line-height: 1.2;
+              font-size: 10pt;
+              line-height: 1.1;
             }
             h1, h2, h3 {
               color: black;
@@ -98,38 +98,38 @@ export default function PrintableServiceTicket({ ticket, onClose, companyName = 
             .header {
               text-align: center;
               border-bottom: 2px solid black;
-              padding-bottom: 0.5rem;
-              margin-bottom: 1rem;
+              padding-bottom: 0.4rem;
+              margin-bottom: 0.8rem;
             }
             .company-name {
-              font-size: 1.8rem;
+              font-size: 1.6rem;
               font-weight: bold;
               margin: 0;
             }
             .ticket-title {
-              font-size: 1.4rem;
+              font-size: 1.2rem;
               font-weight: bold;
-              margin: 0.3rem 0;
+              margin: 0.2rem 0;
             }
             .subtitle {
-              font-size: 1rem;
+              font-size: 0.9rem;
               font-weight: 500;
-              margin: 0.3rem 0 0 0;
+              margin: 0.2rem 0 0 0;
             }
             .info-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 1rem;
-              margin-bottom: 1rem;
+              gap: 0.8rem;
+              margin-bottom: 0.8rem;
             }
             .info-section {
               border: 1px solid black;
-              padding: 0.6rem;
+              padding: 0.5rem;
             }
             .section-title {
               font-weight: bold;
-              font-size: 1rem;
-              margin-bottom: 0.6rem;
+              font-size: 0.95rem;
+              margin-bottom: 0.5rem;
               text-decoration: underline;
             }
             .field {
@@ -143,24 +143,20 @@ export default function PrintableServiceTicket({ ticket, onClose, companyName = 
             }
             .description-section {
               border: 1px solid black;
-              padding: 0.6rem;
-              margin-bottom: 1rem;
+              padding: 0.5rem;
+              margin-bottom: 0.8rem;
+              min-height: 50px;
             }
             .notes-section {
               border: 1px solid black;
-              padding: 0.6rem;
-              margin-bottom: 1rem;
-              min-height: 60px;
+              padding: 0.5rem;
+              margin-bottom: 0.8rem;
+              min-height: 50px;
             }
-            .status-grid {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 1rem;
-              margin-bottom: 1rem;
-            }
-            .checkbox-section {
+            .status-section {
               border: 1px solid black;
               padding: 0.6rem;
+              margin-bottom: 0.8rem;
             }
             .checkbox-item {
               margin-bottom: 0.4rem;
@@ -169,17 +165,17 @@ export default function PrintableServiceTicket({ ticket, onClose, companyName = 
               font-size: 10pt;
             }
             .checkbox {
-              width: 15px;
-              height: 15px;
-              border: 1px solid black;
-              margin-right: 8px;
+              width: 18px;
+              height: 18px;
+              border: 2px solid black;
+              margin-right: 10px;
               display: inline-block;
             }
             .parts-section {
               border: 1px solid black;
-              padding: 0.6rem;
-              margin-bottom: 1rem;
-              min-height: 60px;
+              padding: 0.5rem;
+              margin-bottom: 0.8rem;
+              min-height: 50px;
             }
             .times-grid {
               display: grid;
@@ -195,27 +191,27 @@ export default function PrintableServiceTicket({ ticket, onClose, companyName = 
               display: grid;
               grid-template-columns: 1fr 1fr;
               gap: 1rem;
-              margin-bottom: 1rem;
+              margin-bottom: 0.5rem;
             }
             .signature-section {
               border: 1px solid black;
-              padding: 0.6rem;
+              padding: 0.5rem;
             }
             .signature-line {
               border-bottom: 1px solid black;
-              height: 2rem;
-              margin-bottom: 0.3rem;
+              height: 1.5rem;
+              margin-bottom: 0.2rem;
             }
             .footer {
-              margin-top: 1rem;
+              margin-top: 0.5rem;
               text-align: center;
-              font-size: 9pt;
+              font-size: 8pt;
               border-top: 1px solid black;
-              padding-top: 0.5rem;
+              padding-top: 0.3rem;
             }
             @media print {
               body { margin: 0; }
-              @page { margin: 0.4in; size: letter; }
+              @page { margin: 0.3in; size: letter; }
             }
           </style>
         </head>
@@ -228,33 +224,33 @@ export default function PrintableServiceTicket({ ticket, onClose, companyName = 
 
           <div class="info-grid">
             <div class="info-section">
-              <div class="section-title">Ticket Information</div>
+              <div class="section-title">Service Ticket Information</div>
               <div class="field">
-                <span class="field-label">Ticket #:</span>
-                <span>${ticket.TicketID || 'N/A'}</span>
+                <span class="field-label">Ticket Number:</span>
+                <span style="font-family: monospace; font-size: 11pt; font-weight: bold;">${ticket.TicketID || 'N/A'}</span>
+              </div>
+              <div class="field">
+                <span class="field-label">Title:</span>
+                <span style="font-weight: bold;">${ticket.Title || 'N/A'}</span>
+              </div>
+              <div class="field">
+                <span class="field-label">Date of Service:</span>
+                <span>${formatDateOnly(ticket.ScheduledStart || ticket.CreatedAt)}</span>
               </div>
               <div class="field">
                 <span class="field-label">Status:</span>
-                <span>${ticket.Status || 'N/A'}</span>
+                <span><strong>${ticket.Status || 'N/A'}</strong></span>
               </div>
               <div class="field">
                 <span class="field-label">Priority:</span>
-                <span>${ticket.Priority || 'N/A'}</span>
-              </div>
-              <div class="field">
-                <span class="field-label">Category:</span>
-                <span>${ticket.Category || 'N/A'}</span>
-              </div>
-              <div class="field">
-                <span class="field-label">Created:</span>
-                <span>${formatDate(ticket.CreatedAt)}</span>
+                <span><strong>${ticket.Priority || 'N/A'}</strong></span>
               </div>
             </div>
 
             <div class="info-section">
               <div class="section-title">Customer & Site Information</div>
               <div class="field">
-                <span class="field-label">Customer:</span>
+                <span class="field-label">Customer Name:</span>
                 <span>${ticket.Customer || 'N/A'}</span>
               </div>
               <div class="field">
@@ -266,12 +262,8 @@ export default function PrintableServiceTicket({ ticket, onClose, companyName = 
                 <span>${siteData?.Address || '_____________________________'}</span>
               </div>
               <div class="field">
-                <span class="field-label">Site Contact:</span>
+                <span class="field-label">Site Contact Name:</span>
                 <span>${siteData?.ContactName || '_____________________________'}</span>
-              </div>
-              <div class="field">
-                <span class="field-label">Assigned To:</span>
-                <span>${ticket.AssignedTo || 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -283,97 +275,89 @@ export default function PrintableServiceTicket({ ticket, onClose, companyName = 
 
           <div class="notes-section">
             <div class="section-title">Technician Notes</div>
-            <p style="color: #666; font-style: italic; margin: 0; font-size: 9pt;">Use this space for service notes, findings, and work performed...</p>
           </div>
 
-          <div class="status-grid">
-            <div class="checkbox-section">
-              <div class="section-title">Service Status</div>
+          <div class="status-section">
+            <div class="section-title">Service Completion Status</div>
+            <div style="display: flex; gap: 2rem;">
               <div class="checkbox-item">
                 <span class="checkbox"></span>
-                <span>Resolved - Service Complete</span>
+                <span style="font-weight: 500;">Resolved</span>
               </div>
               <div class="checkbox-item">
                 <span class="checkbox"></span>
-                <span>Return Trip Needed</span>
+                <span style="font-weight: 500;">Return Trip Needed</span>
               </div>
-              <div class="checkbox-item">
-                <span class="checkbox"></span>
-                <span>Parts Ordered</span>
-              </div>
-              <div class="checkbox-item">
-                <span class="checkbox"></span>
-                <span>Follow-up Required</span>
-              </div>
-            </div>
-
-            <div class="parts-section">
-              <div class="section-title">Parts Used</div>
-              <p style="color: #666; font-style: italic; margin: 0; font-size: 9pt;">List parts used and quantities...</p>
             </div>
           </div>
 
-          <div class="times-grid">
-            <div class="time-section">
-              <div class="section-title">Service Times</div>
-              <div class="field">
-                <span class="field-label">Start Time:</span>
-                <span>_______________</span>
-              </div>
-              <div class="field">
-                <span class="field-label">Stop Time:</span>
-                <span>_______________</span>
-              </div>
-              <div class="field">
-                <span class="field-label">Total Hours:</span>
-                <span>_______________</span>
-              </div>
+          <div class="parts-section">
+            <div class="section-title">Parts Used</div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.4rem; font-weight: bold; border-bottom: 1px solid black; padding-bottom: 0.3rem; font-size: 10pt;">
+              <div>Part Description</div>
+              <div>Part Number</div>
+              <div>Quantity</div>
             </div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.3rem; border-bottom: 1px solid #ccc; padding-bottom: 0.3rem; font-size: 9pt;">
+              <div>_________________________________</div>
+              <div>_______________</div>
+              <div>_______</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.3rem; border-bottom: 1px solid #ccc; padding-bottom: 0.3rem; font-size: 9pt;">
+              <div>_________________________________</div>
+              <div>_______________</div>
+              <div>_______</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.3rem; font-size: 9pt;">
+              <div>_________________________________</div>
+              <div>_______________</div>
+              <div>_______</div>
+            </div>
+          </div>
 
-            <div class="time-section">
-              <div class="section-title">Service Information</div>
+          <div style="border: 1px solid black; padding: 0.6rem; margin-bottom: 1rem;">
+            <div class="section-title">Service Times & Technician</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
               <div class="field">
-                <span class="field-label">Tech Name:</span>
-                <span>_______________</span>
+                <span style="font-weight: bold; display: block; margin-bottom: 0.2rem;">Start Time:</span>
+                <span>${formatDate(ticket.ScheduledStart) !== 'N/A' ? formatDate(ticket.ScheduledStart) : '_______________'}</span>
               </div>
               <div class="field">
-                <span class="field-label">Date of Service:</span>
-                <span>${formatDateOnly(new Date().toISOString())}</span>
+                <span style="font-weight: bold; display: block; margin-bottom: 0.2rem;">Stop Time:</span>
+                <span>${formatDate(ticket.ScheduledEnd) !== 'N/A' ? formatDate(ticket.ScheduledEnd) : '_______________'}</span>
+              </div>
+              <div class="field">
+                <span style="font-weight: bold; display: block; margin-bottom: 0.2rem;">Tech Name:</span>
+                <span>${ticket.AssignedTo || '_______________'}</span>
               </div>
             </div>
           </div>
 
           <div class="signatures-grid">
             <div class="signature-section">
-              <div style="margin-bottom: 0.5rem; font-weight: bold; font-size: 10pt;">Technician Sign-off:</div>
+              <div style="margin-bottom: 0.3rem; font-weight: bold; font-size: 9pt;">Technician Sign-off:</div>
               <div class="signature-line"></div>
-              <div style="text-align: center; font-size: 9pt;">
-                <strong>Technician Signature</strong>
-              </div>
-              <div style="text-align: center; font-size: 9pt; margin-top: 0.2rem;">
-                Date: ${formatDateOnly(new Date().toISOString())}
+              <div style="text-align: center; font-size: 8pt;">
+                <strong>Technician Signature</strong> - Date: ${formatDateOnly(new Date().toISOString())}
               </div>
             </div>
 
             <div class="signature-section">
-              <div style="margin-bottom: 0.5rem; font-weight: bold; font-size: 10pt;">Customer Sign-off:</div>
-              <div style="margin-bottom: 0.5rem; font-size: 9pt;">
+              <div style="margin-bottom: 0.3rem; font-weight: bold; font-size: 9pt;">Customer Sign-off:</div>
+              <div style="margin-bottom: 0.3rem; font-size: 8pt;">
                 Print Name: ___________________________
               </div>
               <div class="signature-line"></div>
-              <div style="text-align: center; font-size: 9pt;">
-                <strong>Customer Signature</strong>
-              </div>
-              <div style="text-align: center; font-size: 9pt; margin-top: 0.2rem;">
-                Date: _______________
+              <div style="text-align: center; font-size: 8pt;">
+                <strong>Customer Signature</strong> - Date: _______________
               </div>
             </div>
           </div>
 
           <div class="footer">
-            <p>This service ticket was generated on ${new Date().toLocaleDateString('en-US', { 
+            <p style="margin: 0;">Generated: ${new Date().toLocaleDateString('en-US', { 
               year: 'numeric', 
-              month: 'long', 
+              month: 'short', 
               day: 'numeric',
               hour: '2-digit',
               minute: '2-digit'
@@ -528,6 +512,9 @@ export default function PrintableServiceTicket({ ticket, onClose, companyName = 
               </h3>
               <div style={{ marginBottom: '0.8rem', color: 'black' }}>
                 <strong>Ticket Number:</strong> <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', fontWeight: 'bold' }}>{ticket.TicketID}</span>
+              </div>
+              <div style={{ marginBottom: '0.8rem', color: 'black' }}>
+                <strong>Title:</strong> <span style={{ fontWeight: 'bold' }}>{ticket.Title}</span>
               </div>
               <div style={{ marginBottom: '0.8rem', color: 'black' }}>
                 <strong>Date of Service:</strong> {formatDateOnly(ticket.ScheduledStart || ticket.CreatedAt)}

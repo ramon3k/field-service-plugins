@@ -2,7 +2,6 @@
 REM Start Field Service Management System
 
 echo Starting Field Service Management System...
-echo.
 
 set "INSTALL_DIR=%~dp0"
 

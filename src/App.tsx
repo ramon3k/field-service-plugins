@@ -55,6 +55,39 @@ export default function App() {
   const [newRequestsCount, setNewRequestsCount] = useState(0) // Count from ServiceRequestsPage
   const [pluginNavTabs, setPluginNavTabs] = useState<Array<{pluginId: string, id: string, label: string, icon?: string, componentId: string, roles?: string[]}>>([])
 
+  // Fetch company info for branding
+  useEffect(() => {
+    if (!isAuthenticated || !currentUser) return
+
+    const fetchCompanyInfo = async () => {
+      try {
+        const companyCode = localStorage.getItem('companyCode')
+        if (!companyCode) {
+          console.warn('⚠️ No companyCode in localStorage')
+          return
+        }
+
+        console.log('📋 Fetching company info for:', companyCode)
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+        const response = await fetch(`${API_BASE_URL}/companies/${companyCode}`)
+        if (response.ok) {
+          const company = await response.json()
+          console.log('📋 Company data received:', company)
+          // Use DisplayName if available, otherwise CompanyName, otherwise CompanyCode
+          const displayName = company.DisplayName || company.CompanyName || company.CompanyCode || 'Field Service Management'
+          setCompanyDisplayName(displayName)
+          console.log('✅ Company branding loaded:', displayName)
+        } else {
+          console.error('❌ Failed to fetch company:', response.status, response.statusText)
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch company info:', error)
+      }
+    }
+
+    fetchCompanyInfo()
+  }, [isAuthenticated, currentUser])
+
   // Fetch plugin nav tabs when authenticated
   useEffect(() => {
     if (!isAuthenticated || !currentUser) return

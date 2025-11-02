@@ -924,10 +924,16 @@ app.post('/api/auth/login', async (req, res) => {
     let companyDisplayName = resolvedCompanyCode;
 
     try {
-      const company = companyCheck.recordset[0];
-      companyName = company.CompanyName || resolvedCompanyCode;
-      companyDisplayName = company.DisplayName || company.CompanyName || resolvedCompanyCode;
-      console.log(`?f�� Company branding: ${companyDisplayName}`);
+      const companyCheck = await pool.request()
+        .input('companyCode', sql.VarChar, resolvedCompanyCode)
+        .query('SELECT CompanyCode, CompanyName, DisplayName FROM Companies WHERE CompanyCode = @companyCode AND IsActive = 1');
+      
+      if (companyCheck.recordset.length > 0) {
+        const company = companyCheck.recordset[0];
+        companyName = company.CompanyName || resolvedCompanyCode;
+        companyDisplayName = company.DisplayName || company.CompanyName || resolvedCompanyCode;
+        console.log(`?f�� Company branding: ${companyDisplayName}`);
+      }
     } catch (companyErr) {
       console.warn('Could not resolve company branding (non-critical):', companyErr.message);
     }

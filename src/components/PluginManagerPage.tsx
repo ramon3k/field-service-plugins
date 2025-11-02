@@ -110,8 +110,15 @@ export default function PluginManagerPage() {
         throw new Error(data.error || 'Failed to install plugin')
       }
 
+      const data = await response.json()
       await fetchPlugins()
-      alert('Plugin installed successfully!\n\nIf this plugin has frontend components, they have been automatically copied to src/components/plugins/.\n\nNext steps:\n1. Stop the dev server (if running)\n2. Run: npm run build\n3. Restart the API server\n4. Refresh the browser\n\nThe frontend components will then appear!')
+      
+      // Only show restart message if frontend files were copied
+      if (data.frontendFilesCopied) {
+        alert('Plugin installed successfully!\n\nFrontend components have been automatically copied to src/components/plugins/.\n\nNext steps:\n1. Stop the dev server (if running)\n2. Run: npm run build\n3. Restart the API server\n4. Refresh the browser\n\nThe frontend components will then appear!')
+      } else {
+        alert('Plugin installed successfully!')
+      }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to install plugin')
     } finally {

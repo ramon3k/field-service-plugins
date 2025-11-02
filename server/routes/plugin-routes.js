@@ -209,6 +209,9 @@ function initializePluginRoutes(app, pluginManager, pool) {
       const pluginPath = path.join(__dirname, '..', 'plugins', pluginName, 'index.js');
       console.log(`🔍 Plugin path: ${pluginPath}, exists: ${fs.existsSync(pluginPath)}`);
       
+      // Track if frontend files were copied
+      let frontendFilesCopied = false;
+      
       // Call onInstall hook if this is a new installation
       if (isNewInstall) {
         try {
@@ -244,6 +247,7 @@ function initializePluginRoutes(app, pluginManager, pool) {
               
               console.log(`� Frontend files copied: ${copiedFiles.join(', ')}`);
               console.log(`⚠️ User must rebuild the app to see frontend components`);
+              frontendFilesCopied = true;
             }
             
             // Call onInstall hook if it exists
@@ -272,7 +276,8 @@ function initializePluginRoutes(app, pluginManager, pool) {
 
       res.json({ 
         success: true, 
-        message: 'Plugin installed successfully' 
+        message: 'Plugin installed successfully',
+        frontendFilesCopied: frontendFilesCopied
       });
     } catch (error) {
       console.error('Error installing plugin:', error);
