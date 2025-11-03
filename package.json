@@ -11,7 +11,7 @@
     "start": "node server/api.cjs"
   },
   "dependencies": {
-    "@azure/msal-browser": "^4.24.0",
+    "@azure/msal-browser": "^4.26.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@types/leaflet": "^1.9.20",
     "adm-zip": "^0.5.16",
