@@ -61,7 +61,7 @@ test-output.txt
 
 # Deployment artifacts and zips
 *.zip
-!time-clock-plugin.zip
+!server/plugins/time-clock-plugin.zip
 server-only.zip
 api-server-only.zip
 deploy.zip
@@ -130,3 +130,21 @@ SETUP.bat.backup
 # API copies
 api.cjs
 server/api.cjs is the only one we need
+
+# Security - Files with potentially sensitive credentials (DO NOT DISTRIBUTE)
+deploy-quick.bat
+deploy-simple.bat
+deploy-to-azure.bat
+migrate-to-azure.bat
+quick-migrate-azure.bat
+LOAD-DEMO-DATA.bat
+load-demo-data.ps1
+cleanup-remaining-demo.cjs
+database/create-azure-table.cjs
+database/export-to-azure-sql.cjs
+database/simple-migration-helper.ps1
+database/run-migration.ps1
+database/export-data-only.ps1
+docs/archive/MULTI-TENANT-SETUP.md
+docs/archive/DEMO-DATABASE-GUIDE.md
+SECURITY-CLEANUP.bat

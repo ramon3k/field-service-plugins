@@ -48,6 +48,11 @@
   gap: 1rem;
 }
 
+.nav-user-section a.nav-button {
+  text-decoration: none;
+  display: inline-block;
+}
+
 .nav-user-info {
   color: #666;
   font-size: 0.9rem;

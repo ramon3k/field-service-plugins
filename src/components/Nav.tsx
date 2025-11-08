@@ -135,6 +135,14 @@ export default function Nav({ currentUser, tab, setTab, onLogout, newRequestsCou
         <span className="nav-user-info">
           Welcome, {currentUser?.fullName} ({currentUser?.role})
         </span>
+        <a 
+          href="https://plugins.workzown.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="ghost nav-button"
+        >
+          Get Plugins
+        </a>
         <button className="ghost nav-button" onClick={handleChangePassword}>
           Change Password
         </button>

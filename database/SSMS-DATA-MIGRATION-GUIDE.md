@@ -6,7 +6,7 @@ SSMS handles Windows Authentication perfectly and can export both schema and dat
 ## Prerequisites
 - SQL Server Management Studio (SSMS) installed
 - Access to local SQL Express: `localhost\SQLEXPRESS`
-- Azure SQL credentials: `sqladmin` / `CustomerPortal2025!`
+- Azure SQL credentials (your server, username, and password)
 
 ## Step 1: Export Data from Local SQL Express
 
@@ -56,10 +56,10 @@ SSMS handles Windows Authentication perfectly and can export both schema and dat
 
 1. **Connect to Azure SQL in SSMS:**
    - File → Connect Object Explorer
-   - Server name: `customer-portal-sql-server.database.windows.net`
+   - Server name: `[YOUR-AZURE-SQL-SERVER].database.windows.net`
    - Authentication: **SQL Server Authentication**
-   - Login: `sqladmin`
-   - Password: `CustomerPortal2025!`
+   - Login: `[YOUR-SQL-USERNAME]`
+   - Password: `[YOUR-SQL-PASSWORD]`
    - Click Connect
 
 2. **Open and Execute Script:**
@@ -137,14 +137,14 @@ If Generate Scripts doesn't work, use the Import/Export Wizard:
 - Azure Portal → SQL databases → FieldServiceDB → Set server firewall
 - Add your current client IP
 
-**"Login failed for user 'sqladmin'":**
-- Verify password: `CustomerPortal2025!`
+**"Login failed for user":**
+- Verify your Azure SQL credentials
 - Check caps lock is off
 - Try connecting via Azure Portal Query Editor first
 
 **"Data imported but can't login to app":**
 - Verify user passwords were migrated
-- Check COMPANY_CODE='KIT' in all records
+- Check COMPANY_CODE in all records
 - Reset admin password if needed
 
 ## Next Steps

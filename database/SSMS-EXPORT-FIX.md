@@ -93,10 +93,10 @@ This creates clean INSERT statements without any database settings.
 ## Import to Azure SQL
 
 1. Connect SSMS to Azure:
-   - Server: `customer-portal-sql-server.database.windows.net`
+   - Server: `[YOUR-AZURE-SQL-SERVER].database.windows.net`
    - Auth: SQL Server Authentication
-   - Login: `sqladmin`
-   - Password: `CustomerPortal2025!`
+   - Login: `[YOUR-SQL-USERNAME]`
+   - Password: `[YOUR-SQL-PASSWORD]`
 
 2. Make sure you're connected to **FieldServiceDB** database
 
