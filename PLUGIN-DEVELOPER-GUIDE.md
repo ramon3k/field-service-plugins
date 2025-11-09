@@ -1,7 +1,296 @@
 # Plugin Developer Guide - Field Service System
 
 ## Overview
-This guide documents the existing database schema, API endpoints, and system resources available to plugin developers. The principle is **plugins should integrate with existing system resources** rather than creating new tables or APIs when existing ones can serve the need.
+This guide shows you how to build plugins for the Field Service Management system. Plugins can add custom functionality, new pages, database tables, and API endpoints while integrating seamlessly with the core application.
+
+## Quick Start
+
+### Plugin Structure
+A complete plugin has this folder structure:
+```
+your-plugin/
+├── plugin.json          # Plugin metadata (required)
+├── index.js            # Backend logic and routes (required)
+├── frontend/           # Frontend components (optional)
+│   └── YourComponent.tsx
+└── README.md           # Documentation (recommended)
+```
+
+### Minimum Required Files
+
+**1. `plugin.json`** - Plugin metadata
+```json
+{
+  "id": "your-plugin",
+  "name": "your-plugin",
+  "displayName": "Your Plugin Name",
+  "version": "1.0.0",
+  "description": "Description of what your plugin does",
+  "author": "Your Company",
+  "main": "index.js",
+  "permissions": [],
+  "dependencies": []
+}
+```
+
+**2. `index.js`** - Main plugin file
+```javascript
+module.exports = {
+  id: 'your-plugin',
+  name: 'your-plugin',
+  version: '1.0.0',
+  
+  // Lifecycle hooks
+  async onInstall(context) {
+    // Runs once when plugin is installed
+    const pool = context.pool || context.app.locals.pool;
+    console.log('[Your Plugin] Installing...');
+    
+    // Create your custom tables here
+  },
+  
+  async onEnable(context) {
+    // Runs every time plugin is enabled
+    const pool = context.pool || context.app.locals.pool;
+    console.log('[Your Plugin] Enabled');
+  },
+  
+  async onUninstall(context) {
+    // Cleanup when plugin is uninstalled
+    const pool = context.pool || context.app.locals.pool;
+    console.log('[Your Plugin] Uninstalling...');
+    
+    // Drop your custom tables here
+  },
+  
+  // API routes
+  routes: [],
+  
+  // Navigation tabs (optional)
+  navTabs: []
+};
+```
+
+## Core Concepts
+
+### 1. Plugin Lifecycle
+
+Plugins have three lifecycle hooks that you can implement:
+
+#### `onInstall(context)`
+- Called **once** when the plugin is first installed
+- Use this to create database tables
+- Context includes: `pool` (database connection), `app` (Express app)
+
+#### `onEnable(context)`
+- Called every time the plugin is enabled (including after installation)
+- Use this to add missing columns to existing tables
+- Good for migrations/upgrades
+
+#### `onUninstall(context)`  
+- Called when the plugin is uninstalled
+- Use this to clean up database tables
+- **Important:** Drop tables in correct order to avoid foreign key errors
+
+### 2. Company Code Isolation
+
+**Every plugin MUST respect company code isolation!** This system supports multiple companies in one database.
+
+#### Always include CompanyCode in your tables:
+```javascript
+await pool.request().query(`
+  CREATE TABLE YourTable (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    CompanyCode NVARCHAR(50) NOT NULL,
+    YourData NVARCHAR(255),
+    CreatedAt DATETIME2 DEFAULT GETDATE(),
+  );
+  CREATE INDEX IX_YourTable_CompanyCode ON YourTable(CompanyCode);
+`);
+```
+
+#### Always filter by CompanyCode in queries:
+```javascript
+const companyCode = req.headers['x-company-code'];
+
+const result = await pool.request()
+  .input('CompanyCode', companyCode)
+  .query('SELECT * FROM YourTable WHERE CompanyCode = @CompanyCode');
+```
+
+### 3. API Routes
+
+Add custom REST API endpoints to your plugin:
+
+```javascript
+routes: [
+  {
+    method: 'GET',
+    path: '/data',
+    handler: async (req, res) => {
+      const pool = req.pool || req.app.locals.pool;
+      const companyCode = req.headers['x-company-code'];
+      const userName = req.headers['x-user-name'];
+      
+      try {
+        const result = await pool.request()
+          .input('CompanyCode', companyCode)
+          .query('SELECT * FROM YourTable WHERE CompanyCode = @CompanyCode');
+        
+        res.json({ data: result.recordset });
+      } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Failed to fetch data' });
+      }
+    }
+  },
+  
+  {
+    method: 'POST',
+    path: '/data',
+    handler: async (req, res) => {
+      const pool = req.pool || req.app.locals.pool;
+      const companyCode = req.headers['x-company-code'];
+      const userName = req.headers['x-user-name'];
+      const { yourField } = req.body;
+      
+      try {
+        await pool.request()
+          .input('CompanyCode', companyCode)
+          .input('YourField', yourField)
+          .input('CreatedBy', userName)
+          .query(`
+            INSERT INTO YourTable (CompanyCode, YourField, CreatedBy)
+            VALUES (@CompanyCode, @YourField, @CreatedBy)
+          `);
+        
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Failed to save data' });
+      }
+    }
+  }
+]
+```
+
+**Your routes will be accessible at:** `/api/plugins/your-plugin/data`
+
+### 4. Navigation Tabs
+
+Add a new tab to the main navigation bar:
+
+```javascript
+navTabs: [
+  {
+    id: 'your-feature',
+    label: 'Your Feature',
+    icon: '📊',
+    componentId: 'your-component-page',
+    roles: ['Admin', 'SystemAdmin', 'Coordinator', 'Technician']
+  }
+]
+```
+
+**Important:**
+- `componentId` must match your frontend component filename (see Frontend Components below)
+- `roles` array controls who can see the tab
+- Omit `roles` to make the tab visible to everyone
+
+### 5. Frontend Components
+
+#### Component Naming Convention
+
+Your frontend component file must follow this naming pattern:
+
+**Filename:** `YourComponent.tsx` (PascalCase)  
+**Auto-generated componentId:** `your-component-page` (kebab-case + `-page`)
+
+**Example:**
+- File: `SpmHub.tsx` → componentId: `spm-hub-page`
+- File: `InstantMessenger.tsx` → componentId: `instant-messenger-page`
+- File: `DailyReport.tsx` → componentId: `daily-report-page`
+
+#### Component Structure
+
+Create your component in `frontend/YourComponent.tsx`:
+
+```typescript
+import React, { useState, useEffect } from 'react';
+
+interface YourComponentProps {
+  currentUser: any;
+  companyCode: string;
+  pluginId: string;
+  componentId: string;
+}
+
+export default function YourComponent({ 
+  currentUser, 
+  companyCode, 
+  pluginId 
+}: YourComponentProps) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const userName = currentUser?.username || currentUser?.fullName || 'User';
+
+  useEffect(() => {
+    loadData();
+  }, [companyCode]);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/plugins/${pluginId}/data`, {
+        headers: {
+          'x-company-code': companyCode,
+          'x-user-name': userName
+        }
+      });
+      const result = await response.json();
+      setData(result.data || []);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: '24px' }}>
+      <h1>Your Feature</h1>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div>
+          {/* Your UI here */}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+#### Installing Components
+
+Place your frontend component in:
+```
+server/plugins/your-plugin/frontend/YourComponent.tsx
+```
+
+After uploading the plugin, copy the component file to:
+```
+src/components/plugins/YourComponent.tsx
+```
+
+The system will automatically discover and register it based on the filename!
+
+## Database Schema
+
+### Core Tables You Can Reference
+
+The system includes these core tables available for your plugins:
 
 ## Database Schema
 
@@ -315,53 +604,314 @@ const activeTickets = tickets.filter(t => ['New', 'Scheduled', 'In-Progress'].in
 // Plugin can add workflow steps, notifications, etc.
 ```
 
-## Development Environment Setup
+## Complete Working Example
 
-### Local Database Access
-1. Use SQL Server Express (local development)
-2. Connection string available in application configuration
-3. Database name: `FieldServiceDB`
-4. All tables and indexes already created
+Here's a minimal but complete plugin that demonstrates all the key concepts:
 
-### API Service Integration
-1. Import existing `SqlApiService.ts` for database operations
-2. Headers automatically managed for authentication and company context
-3. Error handling and response processing already implemented
+### Directory Structure
+```
+my-tracker-plugin/
+├── plugin.json
+├── index.js
+├── frontend/
+│   └── TrackerPage.tsx
+└── README.md
+```
+
+### plugin.json
+```json
+{
+  "id": "tracker-plugin",
+  "name": "tracker-plugin",
+  "displayName": "Item Tracker",
+  "version": "1.0.0",
+  "description": "Track custom items with status updates",
+  "author": "Your Company",
+  "main": "index.js"
+}
+```
+
+### index.js
+```javascript
+module.exports = {
+  id: 'tracker-plugin',
+  name: 'tracker-plugin',
+  version: '1.0.0',
+  
+  async onInstall(context) {
+    const pool = context.pool || context.app.locals.pool;
+    
+    await pool.request().query(`
+      CREATE TABLE TrackerItems (
+        ItemID INT IDENTITY(1,1) PRIMARY KEY,
+        CompanyCode NVARCHAR(50) NOT NULL,
+        ItemName NVARCHAR(255) NOT NULL,
+        Status NVARCHAR(50) DEFAULT 'Active',
+        CreatedBy NVARCHAR(100),
+        CreatedAt DATETIME2 DEFAULT GETDATE()
+      );
+      CREATE INDEX IX_TrackerItems_CompanyCode ON TrackerItems(CompanyCode);
+    `);
+    
+    console.log('[Tracker] Plugin installed');
+  },
+  
+  async onUninstall(context) {
+    const pool = context.pool || context.app.locals.pool;
+    await pool.request().query('DROP TABLE IF EXISTS TrackerItems');
+    console.log('[Tracker] Plugin uninstalled');
+  },
+  
+  routes: [
+    {
+      method: 'GET',
+      path: '/items',
+      handler: async (req, res) => {
+        const pool = req.pool || req.app.locals.pool;
+        const companyCode = req.headers['x-company-code'];
+        
+        const result = await pool.request()
+          .input('CompanyCode', companyCode)
+          .query('SELECT * FROM TrackerItems WHERE CompanyCode = @CompanyCode');
+        
+        res.json({ items: result.recordset });
+      }
+    },
+    
+    {
+      method: 'POST',
+      path: '/items',
+      handler: async (req, res) => {
+        const pool = req.pool || req.app.locals.pool;
+        const companyCode = req.headers['x-company-code'];
+        const userName = req.headers['x-user-name'];
+        const { itemName, status } = req.body;
+        
+        await pool.request()
+          .input('CompanyCode', companyCode)
+          .input('ItemName', itemName)
+          .input('Status', status)
+          .input('CreatedBy', userName)
+          .query(`
+            INSERT INTO TrackerItems (CompanyCode, ItemName, Status, CreatedBy)
+            VALUES (@CompanyCode, @ItemName, @Status, @CreatedBy)
+          `);
+        
+        res.json({ success: true });
+      }
+    }
+  ],
+  
+  navTabs: [
+    {
+      id: 'tracker-main',
+      label: 'Tracker',
+      icon: '📋',
+      componentId: 'tracker-page-page',
+      roles: ['Admin', 'Coordinator']
+    }
+  ]
+};
+```
+
+### frontend/TrackerPage.tsx
+```typescript
+import React, { useState, useEffect } from 'react';
+
+export default function TrackerPage({ currentUser, companyCode, pluginId }) {
+  const [items, setItems] = useState([]);
+  const [newItem, setNewItem] = useState('');
+
+  useEffect(() => {
+    loadItems();
+  }, [companyCode]);
+
+  const loadItems = async () => {
+    const response = await fetch(`/api/plugins/${pluginId}/items`, {
+      headers: {
+        'x-company-code': companyCode,
+        'x-user-name': currentUser?.fullName || 'User'
+      }
+    });
+    const data = await response.json();
+    setItems(data.items || []);
+  };
+
+  const addItem = async () => {
+    await fetch(`/api/plugins/${pluginId}/items`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-company-code': companyCode,
+        'x-user-name': currentUser?.fullName || 'User'
+      },
+      body: JSON.stringify({ itemName: newItem, status: 'Active' })
+    });
+    
+    setNewItem('');
+    loadItems();
+  };
+
+  return (
+    <div style={{ padding: '24px' }}>
+      <h1>Item Tracker</h1>
+      
+      <div style={{ marginBottom: '20px' }}>
+        <input 
+          value={newItem} 
+          onChange={(e) => setNewItem(e.target.value)}
+          placeholder="New item name"
+        />
+        <button onClick={addItem}>Add Item</button>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Status</th>
+            <th>Created By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map(item => (
+            <tr key={item.ItemID}>
+              <td>{item.ItemName}</td>
+              <td>{item.Status}</td>
+              <td>{item.CreatedBy}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+## Packaging Your Plugin
+
+### 1. Create Package Structure
+
+Your plugin ZIP must have this structure:
+```
+plugin-name.zip
+├── plugin.json
+├── index.js
+├── frontend/
+│   └── YourComponent.tsx
+└── README.md
+```
+
+### 2. Create the ZIP File
+
+**Using PowerShell:**
+```powershell
+Compress-Archive -Path .\your-plugin\* -DestinationPath .\your-plugin.zip
+```
+
+**Using Command Prompt:**
+```cmd
+powershell -command "Compress-Archive -Path .\your-plugin\* -DestinationPath .\your-plugin.zip"
+```
+
+**Using 7-Zip or WinRAR:**
+- Right-click the plugin folder
+- Select "Add to archive" or "Compress to ZIP"
+
+### 3. Install the Plugin
+
+1. Open the Field Service application
+2. Navigate to the **Plugins** tab
+3. Click **Upload Plugin**
+4. Select your ZIP file
+5. Click **Install**
+6. After installation, manually copy `frontend/YourComponent.tsx` to `src/components/plugins/YourComponent.tsx`
+7. Rebuild the frontend if needed
+8. Enable the plugin
+
+## Development Tips
+
+### Use Hot Reload for Development
+
+Run `PLUGIN-DEV-MODE.bat` to enable automatic reloading:
+- Edit your plugin files in `server/plugins/your-plugin/`
+- Server automatically restarts when files change
+- Refresh browser to see changes
+- No need to zip/upload/install repeatedly!
+
+### Debugging
+
+**Backend (API/Database):**
+- Check server console for `console.log()` output
+- Plugin logs are prefixed with `[Plugin-Name]`
+- Database errors show query details
+
+**Frontend:**
+- Open browser DevTools (F12)
+- Check Console tab for errors
+- Network tab shows API requests/responses
 
 ### Testing Multi-Tenancy
-1. Create test users with different `companyCode` values
-2. Verify data isolation between companies
-3. Test plugin functionality across company boundaries
 
-## Security Considerations
+Create test users with different company codes:
+```sql
+INSERT INTO Users (ID, Username, Email, FullName, Role, PasswordHash, CompanyCode)
+VALUES 
+  (NEWID(), 'test1', 'test1@company-a.com', 'Test User A', 'Admin', '$2b$10$...', 'COMPANY-A'),
+  (NEWID(), 'test2', 'test2@company-b.com', 'Test User B', 'Admin', '$2b$10$...', 'COMPANY-B');
+```
 
-### Authentication
-- User authentication handled by core application
-- Plugin inherits user context and permissions
-- Role-based access: Admin, Coordinator, Technician
+Log in as each user and verify:
+- Data from other companies is not visible
+- Plugin creates separate data per company
+- All queries include CompanyCode filter
 
-### Data Access
-- Respect existing role-based permissions
-- Company-code isolation enforced automatically
-- Sensitive data (passwords, etc.) already protected
+## Troubleshooting
 
-### API Security
-- All requests include authentication headers
-- Rate limiting and error handling in place
-- SQL injection protection through parameterized queries
+### "Component not found in registry"
+- Check that your component filename matches the `componentId` pattern
+- `TrackerPage.tsx` → `tracker-page-page`
+- Component must be copied to `src/components/plugins/`
 
-## Migration Strategy
+### "Cannot find module" errors
+- Verify `index.js` exports a module: `module.exports = { ... }`
+- Check that `plugin.json` has `"main": "index.js"`
 
-### Upgrading Existing Plugins
-1. **Audit current plugin tables**: Identify data that could use existing tables
-2. **Map to existing schema**: Plan data migration to existing tables
-3. **Update API calls**: Switch to existing endpoints where possible
-4. **Test thoroughly**: Ensure company isolation and data integrity
+### Database table not created
+- Check `onInstall()` was called (check console logs)
+- Verify SQL syntax is correct
+- Make sure table doesn't already exist (prevents re-creation)
 
-### New Plugin Development
-1. **Start with existing schema**: Design around existing tables first
-2. **Minimal new tables**: Only create new tables when absolutely necessary
-3. **Reference existing IDs**: Always use foreign keys to existing entities
-4. **Follow naming conventions**: Plugin tables should be clearly identified
+### Data showing from other companies
+- **Always** filter by `CompanyCode` in every query
+- Get CompanyCode from request headers: `req.headers['x-company-code']`
+- Never hardcode CompanyCode values
+
+## Best Practices
+
+✅ **DO:**
+- Always filter queries by CompanyCode
+- Use parameterized queries to prevent SQL injection
+- Add indexes on CompanyCode columns
+- Log important operations with `console.log('[Your Plugin] ...')`
+- Test with multiple company codes
+- Handle errors gracefully
+- Document your API endpoints
+
+❌ **DON'T:**
+- Share data between companies
+- Use raw string concatenation in SQL queries
+- Create tables without CompanyCode
+- Forget foreign key constraints on CASCADE DELETE
+- Hardcode company names or codes
+- Ignore error handling
+
+## Getting Help
+
+For additional support:
+- Check the example plugins in `server/plugins/`
+- Review the plugin templates in `plugin-templates/`
+- Test with `PLUGIN-DEV-MODE.bat` for rapid iteration
+- Read the error messages carefully - they usually point to the issue
 
 This approach ensures plugins integrate seamlessly with the existing system while maintaining data consistency and multi-tenant isolation.

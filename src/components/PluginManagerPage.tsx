@@ -274,7 +274,7 @@ export default function PluginManagerPage() {
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0' }}>
             🔌 Plugin Manager
           </h1>
-          <p style={{ color: '#4b5563', margin: 0 }}>
+          <p style={{ color: '#1f2937', margin: 0 }}>
             Manage plugins for your Field Service application. Install, enable, disable, or uninstall plugins to customize your experience.
           </p>
         </div>
@@ -339,7 +339,7 @@ export default function PluginManagerPage() {
                     </span>
                   )}
                 </div>
-                <p style={{ margin: '4px 0', fontSize: '14px', color: '#4b5563' }}>
+                <p style={{ margin: '4px 0', fontSize: '14px', color: '#1f2937' }}>
                   Version {plugin.Version} {plugin.author && `• by ${plugin.author}`}
                 </p>
               </div>

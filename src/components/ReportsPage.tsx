@@ -79,7 +79,7 @@ function MetricCard({ title, value, subtext, color = '#333', trend }: MetricCard
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       minWidth: '200px'
     }}>
-      <div style={{ fontSize: '14px', color: '#555', marginBottom: '8px' }}>
+      <div style={{ fontSize: '14px', color: '#1f2937', marginBottom: '8px' }}>
         {trendIcon} {title}
       </div>
       <div style={{ 
