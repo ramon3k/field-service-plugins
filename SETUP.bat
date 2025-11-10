@@ -477,17 +477,17 @@ echo Node needs to be installed >> setup-debug.log
     echo Checking for local Node installer >> setup-debug.log
     
     REM Check if installer exists locally
-    if exist "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" (
+    if exist "%INSTALL_DIR%installers\node-v20.18.0-x64.msi" (
         echo [OK] Found Node.js installer in installers folder
         goto :install_node
     )
     
     REM Try to download if not found
     echo [OK] Node.js installer not found locally
-    echo [OK] Attempting to download (28 MB)...
+    echo [OK] Attempting to download (32 MB)...
     echo.
     
-    powershell -ExecutionPolicy Bypass -Command "try { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri 'https://nodejs.org/dist/v18.18.0/node-v18.18.0-x64.msi' -OutFile '%INSTALL_DIR%installers\node-v18.18.0-x64.msi' -UseBasicParsing; exit 0 } catch { Write-Host 'Download failed:' $_.Exception.Message; exit 1 }" 2>&1
+    powershell -ExecutionPolicy Bypass -Command "try { $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri 'https://nodejs.org/dist/v20.18.0/node-v20.18.0-x64.msi' -OutFile '%INSTALL_DIR%installers\node-v20.18.0-x64.msi' -UseBasicParsing; exit 0 } catch { Write-Host 'Download failed:' $_.Exception.Message; exit 1 }" 2>&1
     
     if !errorLevel! neq 0 (
         echo.
@@ -500,7 +500,7 @@ echo Node needs to be installed >> setup-debug.log
         echo SOLUTION: Manual Download Required
         echo ----------------------------------------
         echo 1. Download Node.js LTS from:
-        echo    https://nodejs.org/dist/v18.18.0/node-v18.18.0-x64.msi
+        echo    https://nodejs.org/dist/v20.18.0/node-v20.18.0-x64.msi
         echo.
         echo 2. Save it in: %INSTALL_DIR%installers\
         echo.
@@ -512,7 +512,7 @@ echo Node needs to be installed >> setup-debug.log
     )
     
     REM Verify download succeeded
-    if not exist "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" (
+    if not exist "%INSTALL_DIR%installers\node-v20.18.0-x64.msi" (
         echo [OK] Download verification failed - file not created
         echo Please download manually and run SETUP.bat again
         pause
@@ -526,7 +526,7 @@ echo Node needs to be installed >> setup-debug.log
     echo Installing Node.js...
     echo.
     
-    msiexec /i "%INSTALL_DIR%installers\node-v18.18.0-x64.msi" /quiet /norestart
+    msiexec /i "%INSTALL_DIR%installers\node-v20.18.0-x64.msi" /quiet /norestart
     
     if !errorLevel! equ 0 (
         echo [OK] Node.js installed successfully

@@ -6,10 +6,11 @@ This guide walks you through installing the Field Service Management System on a
 
 - **Windows 10 or later** (or Windows Server 2016+)
 - **Administrator privileges** (required for SQL Server and service installation)
+- **Node.js 20 or later** (will be auto-installed by SETUP.bat if not present)
 - **4GB RAM minimum** (8GB recommended)
 - **5GB free disk space**
 
-> **Note**: The installer will automatically download and install SQL Server Express and Node.js if they're not already present.
+> **Note**: The installer will automatically download and install SQL Server Express and Node.js 20 LTS if they're not already present.
 
 ## Quick Start (5 Minutes)
 

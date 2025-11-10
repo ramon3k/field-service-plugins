@@ -8,6 +8,7 @@ Before you begin, ensure you have:
 - Windows 10/11 or Windows Server
 - Administrator access
 - Internet connection
+- Node.js 20 or later (will be auto-installed if not present)
 
 ## Installation Steps
 
@@ -222,6 +223,43 @@ npm install
 ```
 
 Then restart the server.
+
+### npm Install Errors: "EBADENGINE Unsupported engine"
+
+**Cause:** Node.js version is too old. The application requires Node.js 20 or later.
+
+**Symptoms:**
+```
+npm WARN EBADENGINE Unsupported engine {
+  package: '@azure/core-rest-pipeline@2.5.1',
+  required: { node: '>=20.0.0' },
+  current: { node: 'v18.18.0', npm: '9.8.1' }
+}
+```
+
+**Fix:**
+
+1. **Uninstall old Node.js:**
+   - Open Control Panel → Programs and Features
+   - Find "Node.js" and uninstall it
+   - Restart your computer
+
+2. **Download Node.js 20 LTS:**
+   - Go to: https://nodejs.org/dist/v20.18.0/node-v20.18.0-x64.msi
+   - Run the installer
+   - Accept defaults and complete installation
+
+3. **Verify installation:**
+   ```bash
+   node --version
+   ```
+   Should show: `v20.18.0` or higher
+
+4. **Run npm install again:**
+   ```bash
+   cd C:\field-service-plugins-main
+   npm install
+   ```
 
 ### API Server Not Starting
 
