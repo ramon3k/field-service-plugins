@@ -261,6 +261,37 @@ npm WARN EBADENGINE Unsupported engine {
    npm install
    ```
 
+### "Scripts are disabled on this system" Error
+
+**Cause:** PowerShell execution policy is preventing npm scripts from running.
+
+**Symptoms:**
+```
+npm run build
+npm : File C:\Program Files\nodejs\npm.ps1 cannot be loaded because running scripts is disabled on this system.
+```
+
+**Fix:**
+
+**Option 1: Set Execution Policy (Recommended)**
+1. Open PowerShell as Administrator
+2. Run:
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+3. Type `Y` to confirm
+
+**Option 2: Use Command Prompt Instead**
+- Open Command Prompt (cmd.exe) instead of PowerShell
+- Run `npm run build` from there
+
+**Option 3: Bypass for Single Command**
+```powershell
+powershell -ExecutionPolicy Bypass -Command "npm run build"
+```
+
+> **Note:** SETUP.bat should automatically configure this, but if you're setting up manually or the automatic configuration failed, you'll need to do this manually.
+
 ### API Server Not Starting
 
 **Cause:** Server is not running.

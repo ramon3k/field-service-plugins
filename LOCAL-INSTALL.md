@@ -289,7 +289,7 @@ WITH REPLACE;
 - **Solution**: 
   1. Download SQL Server Express: https://go.microsoft.com/fwlink/?linkid=866658
   2. Save as `installers\SQLEXPR_x64_ENU.exe`
-  3. Download Node.js: https://nodejs.org/dist/v18.18.0/node-v18.18.0-x64.msi
+  3. Download Node.js: https://nodejs.org/dist/v20.18.0/node-v20.18.0-x64.msi
   4. Save in `installers\` folder
   5. Run SETUP.bat again
 
@@ -343,6 +343,28 @@ Or run CONFIGURE.bat to change the port.
 - Check: `node --version`
 - If still not found, restart your computer
 - Manually download from: https://nodejs.org/
+
+### "Scripts are disabled on this system" (PowerShell Error)
+
+**Symptoms:**
+```
+npm run build
+npm : File C:\Program Files\nodejs\npm.ps1 cannot be loaded because running scripts is disabled on this system.
+```
+
+**Cause:** PowerShell execution policy prevents npm scripts from running.
+
+**Fix:**
+1. Open PowerShell as Administrator
+2. Run:
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+3. Type `Y` to confirm
+
+**Alternative:** Use Command Prompt (cmd.exe) instead of PowerShell for npm commands.
+
+> **Note:** SETUP.bat should configure this automatically, but if you're running npm commands manually or the automatic setup failed, you'll need to do this.
 
 ### "Permission denied" errors
 - Ensure you ran SETUP.bat **as Administrator**

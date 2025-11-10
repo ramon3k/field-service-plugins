@@ -556,6 +556,16 @@ echo Node needs to be installed >> setup-debug.log
     if !errorLevel! neq 0 (
         echo [OK] Could not refresh environment - you may need to restart your terminal
     )
+    
+    REM Enable PowerShell script execution for npm
+    echo [OK] Configuring PowerShell execution policy for npm...
+    powershell -ExecutionPolicy Bypass -Command "try { Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Write-Host 'PowerShell execution policy set successfully'; exit 0 } catch { Write-Host 'Could not set execution policy:' $_.Exception.Message; exit 1 }" 2>&1
+    if !errorLevel! equ 0 (
+        echo [OK] PowerShell configured for npm scripts
+    ) else (
+        echo [WARNING] Could not configure PowerShell - npm scripts may not work
+        echo [WARNING] You may need to run: Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+    )
 
 :skip_node_install
 echo Node.js section completed >> setup-debug.log
