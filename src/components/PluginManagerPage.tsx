@@ -274,7 +274,7 @@ export default function PluginManagerPage() {
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0' }}>
             🔌 Plugin Manager
           </h1>
-          <p style={{ color: '#1f2937', margin: 0 }}>
+          <p style={{ color: '#6b7280', margin: 0 }}>
             Manage plugins for your Field Service application. Install, enable, disable, or uninstall plugins to customize your experience.
           </p>
         </div>
@@ -329,7 +329,7 @@ export default function PluginManagerPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#1f2937' }}>
                     {plugin.displayName}
                   </h3>
                   {getStatusBadge(plugin)}
@@ -427,7 +427,7 @@ export default function PluginManagerPage() {
               {plugin.Description}
             </p>
 
-            <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#4b5563' }}>
+            <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#1f2937' }}>
               <span>📁 {plugin.Category}</span>
               <span>🆔 {plugin.PluginName}</span>
               <span>📊 {plugin.status}</span>
