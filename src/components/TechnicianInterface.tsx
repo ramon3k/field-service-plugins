@@ -4,6 +4,7 @@ import type { Ticket, AuthUser } from '../types'
 import { authService } from '../services/AuthService'
 import AttachmentUpload from './AttachmentUpload'
 import TicketTimeClock from './plugins/TicketTimeClock'
+import pluginComponents from './plugins/PluginComponentRegistry'
 
 interface PluginTab {
   id: string
@@ -236,47 +237,24 @@ export default function TechnicianInterface({ tickets, currentUser, onTicketUpda
 
       {/* Navigation Tabs */}
       {navPluginTabs.length > 0 && (
-        <div style={{ 
-          marginBottom: '24px', 
-          borderBottom: '2px solid #2d3748',
-          display: 'flex',
-          gap: '8px'
-        }}>
-          <button
-            onClick={() => setActiveView('tickets')}
-            style={{
-              background: activeView === 'tickets' ? '#17263f' : 'transparent',
-              border: 'none',
-              borderBottom: activeView === 'tickets' ? '3px solid #2196F3' : '3px solid transparent',
-              color: activeView === 'tickets' ? '#ffffff' : '#8892b0',
-              padding: '12px 20px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            🎫 My Tickets
-          </button>
-          {navPluginTabs.map(tab => (
+        <div className="nav-container">
+          <div className="nav-tabs">
             <button
-              key={tab.id}
-              onClick={() => setActiveView(tab.id)}
-              style={{
-                background: activeView === tab.id ? '#17263f' : 'transparent',
-                border: 'none',
-                borderBottom: activeView === tab.id ? '3px solid #2196F3' : '3px solid transparent',
-                color: activeView === tab.id ? '#ffffff' : '#8892b0',
-                padding: '12px 20px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                transition: 'all 0.2s ease'
-              }}
+              className={activeView === 'tickets' ? 'primary' : 'ghost'}
+              onClick={() => setActiveView('tickets')}
             >
-              {tab.icon} {tab.label}
+              My Tickets
             </button>
-          ))}
+            {navPluginTabs.map(tab => (
+              <button
+                key={tab.id}
+                className={activeView === tab.id ? 'primary' : 'ghost'}
+                onClick={() => setActiveView(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -458,6 +436,22 @@ export default function TechnicianInterface({ tickets, currentUser, onTicketUpda
       {/* Plugin Content Views */}
       {navPluginTabs.map(tab => {
         if (activeView === tab.id) {
+          const PluginComponent = pluginComponents[tab.componentId]
+          
+          if (PluginComponent) {
+            return (
+              <div key={tab.id}>
+                <PluginComponent 
+                  currentUser={currentUser}
+                  companyCode={currentUser?.companyCode || ''}
+                  pluginId={tab.pluginId}
+                  componentId={tab.componentId}
+                />
+              </div>
+            )
+          }
+          
+          // Fallback to placeholder if component not found
           return (
             <div key={tab.id} style={{
               background: '#1a2332',
@@ -465,15 +459,30 @@ export default function TechnicianInterface({ tickets, currentUser, onTicketUpda
               borderRadius: '8px',
               padding: '24px'
             }}>
-              <h2 style={{ color: '#ffffff', marginBottom: '16px' }}>
-                {tab.icon} {tab.label}
+              <h2 style={{ color: '#ffffff', marginBottom: '16px', fontSize: '20px' }}>
+                {tab.label}
               </h2>
-              <div style={{ color: '#8892b0' }}>
-                <p>Plugin component: {tab.componentId}</p>
-                <p style={{ marginTop: '12px', fontSize: '14px' }}>
-                  This plugin tab is now available in the Technician interface.
-                  The frontend component will be loaded here when implemented.
+              <div style={{ color: '#8892b0', lineHeight: '1.6' }}>
+                <p style={{ marginBottom: '12px', fontSize: '16px' }}>
+                  Component not found: {tab.componentId}
                 </p>
+                <div style={{ 
+                  background: '#17263f', 
+                  padding: '16px', 
+                  borderRadius: '6px',
+                  border: '1px solid #2d3748',
+                  marginTop: '16px'
+                }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#64748b' }}>
+                    <strong style={{ color: '#ffffff' }}>Plugin ID:</strong> {tab.pluginId}
+                  </p>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#64748b' }}>
+                    <strong style={{ color: '#ffffff' }}>Component:</strong> {tab.componentId}
+                  </p>
+                  <p style={{ margin: '0', fontSize: '14px', color: '#64748b' }}>
+                    Make sure the component file exists in src/components/plugins/
+                  </p>
+                </div>
               </div>
             </div>
           )

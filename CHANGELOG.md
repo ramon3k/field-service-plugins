@@ -1,3 +1,22 @@
+## [2.1.6] - 2025-11-14
+
+### Technician Interface Enhancements
+- Added navigation tab system to Technician dashboard
+  - Technicians can now access plugins via main navigation tabs (not just in ticket details)
+  - Tabs filtered by role - only shows plugins with 'Technician' in roles array or no role restrictions
+  - Matches coordinator dashboard styling with clean, professional appearance
+- Implemented dynamic plugin component loading in Technician interface
+  - Plugin frontends now render properly when tabs are clicked
+  - Uses PluginComponentRegistry for automatic component discovery
+  - Fallback placeholders for missing components with helpful error messages
+
+### UI Improvements
+- Fixed text contrast in Plugin Manager page
+  - Changed plugin metadata text from light gray (#4b5563) to dark gray (#1f2937) for better readability
+  - Improved subtitle contrast (#6b7280)
+  - Enhanced accessibility on white backgrounds
+
+---
 ## [2.1.3] - 2025-10-27
 
 ### Plugin Example

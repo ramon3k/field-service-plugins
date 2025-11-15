@@ -197,6 +197,13 @@ navTabs: [
 - `roles` array controls who can see the tab
 - Omit `roles` to make the tab visible to everyone
 
+**Technician Interface Support (v2.1.6+):**
+- Technicians now have a full navigation tab system in their dashboard
+- Include `'Technician'` in the `roles` array to make your plugin accessible to technicians
+- Technician tabs appear alongside "My Tickets" in their interface
+- Plugin components render the same way in both Coordinator and Technician interfaces
+- Example roles for field technician access: `['Admin', 'Coordinator', 'Technician']`
+
 ### 5. Frontend Components
 
 #### Component Naming Convention

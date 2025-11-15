@@ -1,0 +1,8 @@
+{
+  "name": "test-plugin",
+  "displayName": "Auto-Build Test Plugin",
+  "version": "1.0.0",
+  "description": "Test plugin to verify automatic frontend build",
+  "author": "Test",
+  "category": "general"
+}
