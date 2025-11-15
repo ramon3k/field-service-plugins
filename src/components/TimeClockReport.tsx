@@ -31,7 +31,7 @@ const TimeClockReport: React.FC<TimeClockReportProps> = ({ timeFilter = 'all' })
   const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+  const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
   useEffect(() => {
     if (isExpanded) {

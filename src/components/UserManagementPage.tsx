@@ -4,7 +4,7 @@ import { authService } from '../services/AuthService'
 import type { User, UserRole, AuthUser } from '../types'
 import { arrayToCSV } from '../utils/csvExport'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 interface UserManagementPageProps {
   currentUser: AuthUser | null

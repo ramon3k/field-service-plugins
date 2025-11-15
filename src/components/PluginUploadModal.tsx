@@ -9,7 +9,7 @@ export default function PluginUploadModal({ onClose, onSuccess }: PluginUploadMo
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+  const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]

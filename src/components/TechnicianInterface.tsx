@@ -28,7 +28,7 @@ export default function TechnicianInterface({ tickets, currentUser, onTicketUpda
   const [activeView, setActiveView] = useState<string>('tickets')
   const [navPluginTabs, setNavPluginTabs] = useState<PluginTab[]>([])
   
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+  const API_BASE = import.meta.env.VITE_API_URL || '/api'
   
   console.log('TechnicianInterface: currentUser:', currentUser)
   console.log('TechnicianInterface: tickets received:', tickets.length, tickets)
@@ -516,7 +516,7 @@ function TechnicianEditModal({ ticket, currentUser, onClose, onSave }: {
   const [activeTab, setActiveTab] = useState<'status' | 'notes' | 'attachments' | 'timeclock'>('status')
   const [pluginTabs, setPluginTabs] = useState<PluginTab[]>([])
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+  const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
   // Fetch plugin tabs on mount
   useEffect(() => {

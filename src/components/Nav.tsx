@@ -4,7 +4,7 @@ import { authService } from '../services/AuthService'
 import { useMessengerNotification } from '../contexts/MessengerNotificationContext'
 import './Nav.css'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {

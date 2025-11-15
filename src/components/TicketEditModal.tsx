@@ -79,7 +79,7 @@ export default function TicketEditModal({ ticket, onClose, onSave, readonly = fa
     roles: string[]
   }>>([])
   
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+  const API_BASE = import.meta.env.VITE_API_URL || '/api'
   // Use the currentUser passed from parent (App.tsx) instead of AuthService
   const currentUser = propCurrentUser
 

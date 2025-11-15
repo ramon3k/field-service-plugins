@@ -30,7 +30,7 @@ export default function PluginManagerPage() {
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
+  const API_BASE = import.meta.env.VITE_API_URL || '/api'
   
   // Get user context from localStorage
   const companyCode = localStorage.getItem('companyCode') || ''

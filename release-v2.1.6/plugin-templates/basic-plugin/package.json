@@ -1,0 +1,15 @@
+{
+  "name": "my-plugin",
+  "version": "1.0.0",
+  "displayName": "My Awesome Plugin",
+  "description": "A brief description of what this plugin does (max 200 characters)",
+  "author": "Your Name or Company",
+  "category": "productivity",
+  "keywords": [
+    "field-service",
+    "automation",
+    "custom"
+  ],
+  "homepage": "https://example.com/plugins/my-plugin",
+  "license": "MIT"
+}
