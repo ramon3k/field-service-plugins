@@ -148,10 +148,62 @@ REM Set permissions on uploads directory
 icacls "%INSTALL_DIR%server\uploads" /grant Users:F /T >nul 2>&1
 echo [√] Upload directory permissions configured
 
+REM Reinstall plugins to restore dependencies
+echo.
+echo ========================================
+echo Step 6: Reinstalling Plugins
+echo ========================================
+echo.
+
+echo Checking for installed plugins...
+set PLUGIN_COUNT=0
+for /d %%p in ("%INSTALL_DIR%server\plugins\*") do (
+    if exist "%%p\plugin.json" (
+        set /a PLUGIN_COUNT+=1
+        set "PLUGIN_NAME=%%~nxp"
+        echo Found plugin: !PLUGIN_NAME!
+        
+        REM Install dependencies if package.json exists
+        if exist "%%p\package.json" (
+            echo   Installing dependencies for !PLUGIN_NAME!...
+            cd /d "%%p"
+            call npm install --silent >nul 2>&1
+            if !errorLevel! equ 0 (
+                echo   [√] Dependencies installed
+            ) else (
+                echo   [!] Had issues installing dependencies
+            )
+            cd /d "%INSTALL_DIR%"
+        )
+        
+        REM Copy frontend files if they exist
+        if exist "%%p\frontend" (
+            echo   Copying frontend files for !PLUGIN_NAME!...
+            if not exist "%INSTALL_DIR%src\components\plugins" (
+                mkdir "%INSTALL_DIR%src\components\plugins"
+            )
+            xcopy "%%p\frontend\*" "%INSTALL_DIR%src\components\plugins\" /S /Y /I >nul 2>&1
+            if !errorLevel! equ 0 (
+                echo   [√] Frontend files copied
+            ) else (
+                echo   [!] Had issues copying frontend files
+            )
+        )
+    )
+)
+
+if !PLUGIN_COUNT! equ 0 (
+    echo [√] No plugins found
+) else (
+    echo [√] Processed !PLUGIN_COUNT! plugin(s)
+)
+
+cd /d "%INSTALL_DIR%"
+
 REM Update public files
 echo.
 echo ========================================
-echo Step 6: Updating Public Files
+echo Step 7: Updating Public Files
 echo ========================================
 echo.
 
@@ -164,7 +216,7 @@ if exist "%INSTALL_DIR%public\service-request.html" (
 REM Rebuild client application
 echo.
 echo ========================================
-echo Step 7: Rebuilding Client
+echo Step 8: Rebuilding Client
 echo ========================================
 echo.
 
@@ -184,7 +236,7 @@ if exist "package.json" (
 REM Update configuration
 echo.
 echo ========================================
-echo Step 8: Updating Configuration
+echo Step 9: Updating Configuration
 echo ========================================
 echo.
 
@@ -233,11 +285,14 @@ if !errorLevel! equ 1 (
     echo.
     echo Starting application...
     cd /d "%INSTALL_DIR%server"
-    start "Field Service API" cmd /k "node api-minimal.js"
+    start "Field Service API" cmd /k "node api.cjs"
     timeout /t 3 /nobreak >nul
-    start http://localhost:5000
+    cd /d "%INSTALL_DIR%"
+    start "Field Service Client" cmd /k "npm run dev"
+    timeout /t 3 /nobreak >nul
+    start http://localhost:5173
     echo.
-    echo Application started!
+    echo Application started on http://localhost:5173
 )
 
 echo.
