@@ -24,6 +24,10 @@ type Props = {
 export default function TechnicianInterface({ tickets, currentUser, onTicketUpdate, onLogout }: Props) {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [activeView, setActiveView] = useState<string>('tickets')
+  const [navPluginTabs, setNavPluginTabs] = useState<PluginTab[]>([])
+  
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api'
   
   console.log('TechnicianInterface: currentUser:', currentUser)
   console.log('TechnicianInterface: tickets received:', tickets.length, tickets)
@@ -55,6 +59,26 @@ export default function TechnicianInterface({ tickets, currentUser, onTicketUpda
       alert(`Failed to change password: ${error}`)
     }
   }
+
+  // Fetch plugin navigation tabs
+  useEffect(() => {
+    const fetchNavTabs = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/plugins/nav-tabs`)
+        if (response.ok) {
+          const data = await response.json()
+          // Filter tabs that Technicians can see
+          const techTabs = (data.tabs || []).filter((tab: PluginTab) => 
+            !tab.roles || tab.roles.length === 0 || tab.roles.includes('Technician')
+          )
+          setNavPluginTabs(techTabs)
+        }
+      } catch (error) {
+        console.error('Failed to fetch navigation tabs:', error)
+      }
+    }
+    fetchNavTabs()
+  }, [])
 
   // Filter tickets assigned to current technician
   const assignedTickets = useMemo(() => {
@@ -210,7 +234,54 @@ export default function TechnicianInterface({ tickets, currentUser, onTicketUpda
         </div>
       </div>
 
-      {/* Stats Summary */}
+      {/* Navigation Tabs */}
+      {navPluginTabs.length > 0 && (
+        <div style={{ 
+          marginBottom: '24px', 
+          borderBottom: '2px solid #2d3748',
+          display: 'flex',
+          gap: '8px'
+        }}>
+          <button
+            onClick={() => setActiveView('tickets')}
+            style={{
+              background: activeView === 'tickets' ? '#17263f' : 'transparent',
+              border: 'none',
+              borderBottom: activeView === 'tickets' ? '3px solid #2196F3' : '3px solid transparent',
+              color: activeView === 'tickets' ? '#ffffff' : '#8892b0',
+              padding: '12px 20px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            🎫 My Tickets
+          </button>
+          {navPluginTabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveView(tab.id)}
+              style={{
+                background: activeView === tab.id ? '#17263f' : 'transparent',
+                border: 'none',
+                borderBottom: activeView === tab.id ? '3px solid #2196F3' : '3px solid transparent',
+                color: activeView === tab.id ? '#ffffff' : '#8892b0',
+                padding: '12px 20px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Stats Summary - Only show when viewing tickets */}
+      {activeView === 'tickets' && (
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
@@ -280,8 +351,10 @@ export default function TechnicianInterface({ tickets, currentUser, onTicketUpda
           </div>
         )}
       </div>
+      )}
 
-      {/* Tickets List */}
+      {/* Tickets List - Only show when viewing tickets */}
+      {activeView === 'tickets' && (
       <div style={{
         background: '#1a2332',
         border: '1px solid #2d3748',
@@ -380,6 +453,33 @@ export default function TechnicianInterface({ tickets, currentUser, onTicketUpda
           </div>
         )}
       </div>
+      )}
+
+      {/* Plugin Content Views */}
+      {navPluginTabs.map(tab => {
+        if (activeView === tab.id) {
+          return (
+            <div key={tab.id} style={{
+              background: '#1a2332',
+              border: '1px solid #2d3748',
+              borderRadius: '8px',
+              padding: '24px'
+            }}>
+              <h2 style={{ color: '#ffffff', marginBottom: '16px' }}>
+                {tab.icon} {tab.label}
+              </h2>
+              <div style={{ color: '#8892b0' }}>
+                <p>Plugin component: {tab.componentId}</p>
+                <p style={{ marginTop: '12px', fontSize: '14px' }}>
+                  This plugin tab is now available in the Technician interface.
+                  The frontend component will be loaded here when implemented.
+                </p>
+              </div>
+            </div>
+          )
+        }
+        return null
+      })}
 
       {/* Technician Edit Modal */}
       {showEditModal && selectedTicket && (
