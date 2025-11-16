@@ -1,3 +1,22 @@
+## [2.1.7] - 2025-11-16
+
+### Remote Access Fix
+- **Fixed remote connections via Tailscale/VPN**
+  - Changed all API base URLs from absolute (`http://localhost:5000/api`) to relative (`/api`)
+  - Updated SqlApiService.ts and all component API calls
+  - Enables Vite proxy to correctly route API requests from remote machines
+  - Remote users can now access full application functionality over Tailscale
+- Enhanced Vite configuration
+  - Added environment variable support for API/WebSocket targets
+  - Added Cache-Control headers to prevent stale data during remote development
+  - Improved proxy configuration for better remote compatibility
+
+### Notes
+- WebSocket notifications (port 8081) require direct network access
+- Remote users get all functionality except real-time push notifications
+- Designed for local network use with optional Tailscale remote access
+
+---
 ## [2.1.6] - 2025-11-14
 
 ### Technician Interface Enhancements
