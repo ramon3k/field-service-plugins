@@ -38,6 +38,12 @@ temp-logs/
 dist/
 build/
 
+# Release build artifacts
+release-v*/
+BUILD-RELEASE-*.bat
+CREATE-RELEASE-ZIP.ps1
+UPDATE - Copy.bat
+
 # Development and testing files
 temp-*
 test-*.cjs
